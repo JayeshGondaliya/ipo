@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Table, Tag, Input, Select, Button, Tooltip, Drawer, Slider, InputNumber, Statistic, Space } from 'antd';
+import { Table, Tag, Input, Select, Button, Tooltip, Drawer, Slider, InputNumber, Statistic, Space, Dropdown } from 'antd';
 import { 
     SearchOutlined, 
     CalculatorOutlined, 
@@ -8,7 +8,8 @@ import {
     ArrowUpOutlined, 
     ArrowDownOutlined, 
     MinusOutlined,
-    EyeOutlined
+    EyeOutlined,
+    MoreOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { formatINR, formatPercentage } from '../../utils/gmp.js';
@@ -96,7 +97,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
         {
             title: 'GMP*',
             key: 'gmp',
-            width: 110,
+            width: 82,
             render: (_, record) => {
                 const isPositive = record.gmp > 0;
                 const isNegative = record.gmp < 0;
@@ -115,19 +116,19 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
             title: 'Trend',
             key: 'trend',
             align: 'center',
-            width: 70,
+            width: 48,
             render: (_, record) => {
                 const trend = record.gmpTrend || 'neutral';
                 const trendConfig = {
-                    up: { emoji: '🟢', label: 'GMP Rising' },
-                    down: { emoji: '🔴', label: 'GMP Falling' },
-                    neutral: { emoji: '🟡', label: 'GMP Steady' },
+                    up:      { icon: <ArrowUpOutlined style={{ color: '#16a34a', fontSize: 14, fontWeight: 700 }} />, label: 'GMP Rising' },
+                    down:    { icon: <ArrowDownOutlined style={{ color: '#dc2626', fontSize: 14, fontWeight: 700 }} />, label: 'GMP Falling' },
+                    neutral: { icon: <MinusOutlined style={{ color: '#94a3b8', fontSize: 13 }} />, label: 'GMP Steady' },
                 };
                 const item = trendConfig[trend] || trendConfig.neutral;
                 return (
                     <Tooltip title={item.label}>
-                        <span className="trend-dot" aria-label={item.label}>
-                            {item.emoji}
+                        <span aria-label={item.label} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {item.icon}
                         </span>
                     </Tooltip>
                 );
@@ -137,7 +138,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
         {
             title: 'Price Band',
             key: 'price',
-            width: 140,
+            width: 108,
             render: (_, record) => (
                 <div className="table-cell-group">
                     <span className="price-band-val">
@@ -155,7 +156,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
         {
             title: 'Est. Gain',
             key: 'estGain',
-            width: 150,
+            width: 122,
             render: (_, record) => {
                 const estPrice = record.estListingPrice || record.price || 0;
                 const pct = record.gmpPercent || 0;
@@ -177,7 +178,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
         {
             title: 'Date',
             key: 'date',
-            width: 120,
+            width: 95,
             render: (_, record) => (
                 <span className="table-date-text">
                     {formatShortDateRange(record.openDate, record.closeDate)}
@@ -187,47 +188,52 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
         {
             title: '',
             key: 'actions',
-            align: 'right',
-            width: 80,
+            align: 'center',
+            width: 40,
             render: (_, record) => {
                 const isSaved = watchlist.includes(record.id);
+                const menuItems = [
+                    {
+                        key: 'calc',
+                        icon: <CalculatorOutlined style={{ color: '#056a42', fontSize: '14px' }} />,
+                        label: 'Calculate Lot Profit',
+                        onClick: () => openCalculator(record),
+                    },
+                    {
+                        key: 'watchlist',
+                        icon: isSaved ? (
+                            <StarFilled style={{ color: '#eab308', fontSize: '14px' }} />
+                        ) : (
+                            <StarOutlined style={{ color: '#64748b', fontSize: '14px' }} />
+                        ),
+                        label: isSaved ? 'Remove from Watchlist' : 'Add to Watchlist',
+                        onClick: () => onToggleWatchlist?.(record.id),
+                    },
+                    {
+                        type: 'divider',
+                    },
+                    {
+                        key: 'details',
+                        icon: <EyeOutlined style={{ color: '#0284c7', fontSize: '14px' }} />,
+                        label: <Link to={`/ipos/${record.id}`}>View IPO Details</Link>,
+                    },
+                ];
+
                 return (
-                    <Space size={2}>
-                        <Tooltip title="Calculate Lot Profit">
-                            <Button 
-                                type="text" 
-                                size="small" 
-                                icon={<CalculatorOutlined style={{ color: '#056a42', fontSize: '15px' }} />}
-                                onClick={() => openCalculator(record)}
-                                className="table-action-icon-btn"
-                            />
-                        </Tooltip>
-                        <Tooltip title={isSaved ? 'In Watchlist' : 'Add to Watchlist'}>
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={
-                                    isSaved ? (
-                                        <StarFilled style={{ color: '#eab308', fontSize: '14px' }} />
-                                    ) : (
-                                        <StarOutlined style={{ color: '#94a3b8', fontSize: '14px' }} />
-                                    )
-                                }
-                                onClick={() => onToggleWatchlist?.(record.id)}
-                                className="table-action-icon-btn"
-                            />
-                        </Tooltip>
-                        <Tooltip title="View Details">
-                            <Link to={`/ipos/${record.id}`}>
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<EyeOutlined style={{ color: '#056a42', fontSize: '14px' }} />}
-                                    className="table-action-icon-btn"
-                                />
-                            </Link>
-                        </Tooltip>
-                    </Space>
+                    <Dropdown
+                        menu={{ items: menuItems }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <Button
+                            type="text"
+                            size="small"
+                            className="!w-8 !h-8 !inline-flex !items-center !justify-center !text-slate-500 hover:!text-slate-800 hover:!bg-slate-100 !rounded-md"
+                            icon={<MoreOutlined style={{ fontSize: '16px' }} />}
+                            title="Actions"
+                            aria-label={`Actions for ${record.company}`}
+                        />
+                    </Dropdown>
                 );
             },
         },
@@ -248,6 +254,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
                 dataSource={ipos}
                 columns={columns}
                 rowKey="id"
+                scroll={{ x: 650 }}
                 pagination={{ 
                     pageSize: 20, 
                     showSizeChanger: true, 

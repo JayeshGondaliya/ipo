@@ -46,9 +46,11 @@ export default function App() {
                 },
                 components: {
                     Table: {
-                        headerBg: '#f0fdf4',
-                        headerColor: '#033b24',
-                        rowHoverBg: '#f7fee7',
+                        headerBg: '#056a42',
+                        headerColor: '#ffffff',
+                        headerSortActiveBg: '#045233',
+                        headerSortHoverBg: '#045233',
+                        rowHoverBg: '#f4fbf7',
                         borderColor: '#e2e8f0',
                     },
                     Card: {
