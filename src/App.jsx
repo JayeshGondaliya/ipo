@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
+import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/layout/Layout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Home from './pages/Home.jsx';
@@ -80,6 +81,7 @@ export default function App() {
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </Layout>
+                <Analytics />
             </BrowserRouter>
         </ConfigProvider>
     );
