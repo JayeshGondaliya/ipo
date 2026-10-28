@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
     Row, 
     Col, 
@@ -31,6 +31,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useParams } from 'react-router-dom';
 import { allIpos } from '../data/ipos.js';
+import { getIpoBySlug } from '../api/ipoApi.js';
 import NotFound from './NotFound.jsx';
 import { formatPercentage } from '../utils/gmp.js';
 
@@ -47,7 +48,22 @@ function formatDate(val) {
 
 export default function IPODetail({ watchlist = [], onToggleWatchlist }) {
     const { id } = useParams();
-    const ipo = allIpos.find((item) => item.id === id);
+    const initialIpo = allIpos.find((item) => item.id === id);
+    const [ipo, setIpo] = useState(initialIpo);
+
+    useEffect(() => {
+        let active = true;
+        if (id) {
+            getIpoBySlug(id).then((res) => {
+                if (active && res.success && res.data) {
+                    setIpo(res.data);
+                }
+            });
+        }
+        return () => {
+            active = false;
+        };
+    }, [id]);
 
     const [lotsCount, setLotsCount] = useState(1);
 
@@ -125,22 +141,34 @@ export default function IPODetail({ watchlist = [], onToggleWatchlist }) {
 
             {/* Header Banner */}
             <div className="detail-header-card">
-                <div className="header-meta-left">
-                    <div className="title-row">
-                        <h1 className="ipo-title">{ipo.company}</h1>
-                        <Tag color={ipo.board === 'SME' ? 'cyan' : 'green'} className="board-large-tag">
-                            {ipo.board} IPO
-                        </Tag>
-                        <Tag color={statusConfig[ipo.status]?.color || 'default'} className="status-large-tag">
-                            {statusConfig[ipo.status]?.text || ipo.status}
-                        </Tag>
-                    </div>
-                    <div className="subtitle-row">
-                        <span className="symbol-pill">Symbol: <strong>{ipo.symbol}</strong></span>
-                        <span className="divider-dot">•</span>
-                        <span className="sector-pill">Sector: <strong>{ipo.sector}</strong></span>
-                        <span className="divider-dot">•</span>
-                        <span>Offer Type: <strong>{ipo.offerType?.toUpperCase() || 'IPO'}</strong></span>
+                <div className="header-meta-left flex items-start gap-3.5">
+                    {ipo.logo && (
+                        <img
+                            src={ipo.logo}
+                            alt={ipo.company}
+                            className="w-12 h-12 rounded-lg object-contain border border-slate-200 bg-white p-1 shrink-0 mt-0.5"
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                            }}
+                        />
+                    )}
+                    <div className="flex-1 min-w-0">
+                        <div className="title-row">
+                            <h1 className="ipo-title">{ipo.company}</h1>
+                            <Tag color={ipo.board === 'SME' ? 'cyan' : 'green'} className="board-large-tag">
+                                {ipo.board} IPO
+                            </Tag>
+                            <Tag color={statusConfig[ipo.status]?.color || 'default'} className="status-large-tag">
+                                {statusConfig[ipo.status]?.text || ipo.status}
+                            </Tag>
+                        </div>
+                        <div className="subtitle-row">
+                            <span className="symbol-pill">Symbol: <strong>{ipo.symbol}</strong></span>
+                            <span className="divider-dot">•</span>
+                            <span className="sector-pill">Sector: <strong>{ipo.sector}</strong></span>
+                            <span className="divider-dot">•</span>
+                            <span>Offer Type: <strong>{ipo.offerType?.toUpperCase() || 'IPO'}</strong></span>
+                        </div>
                     </div>
                 </div>
             </div>

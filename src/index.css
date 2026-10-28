@@ -199,9 +199,10 @@ button {
 .custom-antd-table .ant-table-thead > tr > th {
   background: #056a42 !important;
   color: #ffffff !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.01em;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
   padding: 12px 14px !important;
   border-bottom: none !important;
 }
@@ -1198,6 +1199,17 @@ button {
   font-size: 13.5px;
   color: #94a3b8;
   font-weight: 500;
+}
+
+.footer-copyright a {
+  color: #cbd5e1;
+  text-decoration: underline;
+  text-underline-offset: 2.5px;
+  transition: color 0.15s;
+}
+
+.footer-copyright a:hover {
+  color: #ffffff;
 }
 
 .footer-disclaimer {

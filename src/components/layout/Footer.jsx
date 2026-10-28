@@ -48,8 +48,19 @@ export default function Footer() {
                         <p className="footer-tagline">
                             India's live IPO Grey Market Premium (GMP) tracker. Real-time data, subscription status, allotment checks, and listing analytics — all in one place.
                         </p>
+                        <div className="text-xs text-slate-600 flex items-center flex-wrap gap-1.5 pt-0.5">
+                            <span className="text-slate-500">IPO GMP data provided by:</span>
+                            <a
+                                href="https://www.ipoguru.in/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-primary-green hover:underline inline-flex items-center gap-1"
+                            >
+                                ipoguru.in <ExternalLink size={11} />
+                            </a>
+                        </div>
                         <p className="footer-sub-note">
-                            GMP data is compiled from grey market dealers for informational reference.
+                            Compiled from over-the-counter grey market dealers for informational reference.
                         </p>
                     </div>
 
@@ -59,6 +70,9 @@ export default function Footer() {
                         <ul className="footer-link-list">
                             <li><Link to="/">Live GMP Tracker</Link></li>
                             <li><Link to="/ipos">IPO Calendar</Link></li>
+                            <li><Link to="/about">About Us</Link></li>
+                            <li><Link to="/disclaimer">Disclaimer</Link></li>
+                            <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                             <li><Link to="/dashboard">Check Allotment</Link></li>
                         </ul>
                     </div>
@@ -124,7 +138,7 @@ export default function Footer() {
             <div className="footer-bottom">
                 <div className="footer-bottom-inner">
                     <p className="footer-copyright">
-                        © {currentYear} ipogmmp.in &nbsp;·&nbsp; All rights reserved &nbsp;·&nbsp; For informational purposes only
+                        © {currentYear} ipogmp.in &nbsp;·&nbsp; IPO GMP data provided by <a href="https://www.ipoguru.in/" target="_blank" rel="noopener noreferrer">ipoguru.in</a> &nbsp;·&nbsp; <Link to="/disclaimer">Disclaimer</Link> &nbsp;·&nbsp; <Link to="/privacy-policy">Privacy Policy</Link> &nbsp;·&nbsp; <Link to="/about">About Us</Link>
                     </p>
                     <p className="footer-disclaimer">
                         <ShieldCheck size={12} aria-hidden="true" />

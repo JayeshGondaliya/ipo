@@ -1,11 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Tabs, Segmented, Input } from 'antd';
+import { Input, Button, Popover } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { Calendar, MessageCircle, Send, Globe } from 'lucide-react';
+import { 
+    Calendar, 
+    MessageCircle, 
+    Send, 
+    Globe, 
+    SlidersHorizontal, 
+    LayoutGrid, 
+    List 
+} from 'lucide-react';
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
+import IPOGmpGrid from '../components/ipo/IPOGmpGrid.jsx';
 import IPOSeoContent from '../components/common/IPOSeoContent.jsx';
 import ipos, { allIpos } from '../data/ipos.js';
+import { getIpos } from '../api/ipoApi.js';
 
 function formatSidebarDates(openVal, closeVal) {
     if (!openVal && !closeVal) return '';
@@ -15,15 +25,15 @@ function formatSidebarDates(openVal, closeVal) {
         if (d1 && d2) {
             const day1 = d1.getDate();
             const day2 = d2.getDate();
-            const m1 = new Intl.DateTimeFormat('en-IN', { month: 'long' }).format(d1);
-            const m2 = new Intl.DateTimeFormat('en-IN', { month: 'long' }).format(d2);
+            const m1 = new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d1);
+            const m2 = new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d2);
             if (m1 === m2) {
                 return `(${day1}-${day2} ${m1})`;
             }
-            return `(${day1}-${day2} ${m2})`;
+            return `(${day1} ${m1} - ${day2} ${m2})`;
         }
-        if (d1) return `(From ${d1.getDate()} ${new Intl.DateTimeFormat('en-IN', { month: 'long' }).format(d1)})`;
-        if (d2) return `(Closes ${d2.getDate()} ${new Intl.DateTimeFormat('en-IN', { month: 'long' }).format(d2)})`;
+        if (d1) return `(From ${d1.getDate()} ${new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d1)})`;
+        if (d2) return `(Closes ${d2.getDate()} ${new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d2)})`;
     } catch {
         return '';
     }
@@ -31,28 +41,35 @@ function formatSidebarDates(openVal, closeVal) {
 }
 
 export default function Home({ watchlist = [], onToggleWatchlist }) {
-    const [statusFilter, setStatusFilter] = useState('active');
+    const [liveIpos, setLiveIpos] = useState(allIpos);
     const [boardFilter, setBoardFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('active');
     const [searchQuery, setSearchQuery] = useState('');
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
 
-    // Focused Current Market Pool (Current active October 2026 issues + Recent September/October listings)
-    const currentMarketIpos = useMemo(() => {
-        const currentMonthSlugs = new Set(ipos.map((i) => i.id));
-        const activeCurrent = ipos;
-
-        // Recent listed issues from late September / October 2026
-        const recentListed = allIpos
-            .filter((i) => !currentMonthSlugs.has(i.id) && i.status === 'listed' && i.listingDate && i.listingDate >= '2026-09-15')
-            .slice(0, 15);
-
-        return [...activeCurrent, ...recentListed];
+    useEffect(() => {
+        let active = true;
+        getIpos().then((res) => {
+            if (active && res.success && res.data?.length > 0) {
+                setLiveIpos(res.data);
+            }
+        });
+        return () => {
+            active = false;
+        };
     }, []);
+
+    // Focused Current Market Pool
+    const currentMarketIpos = useMemo(() => {
+        const active = liveIpos.filter((i) => i.status !== 'listed');
+        const recentListed = liveIpos.filter((i) => i.status === 'listed').slice(0, 25);
+        return [...active, ...recentListed];
+    }, [liveIpos]);
 
     // Helper: returns true if a closed IPO's subscription window has NOT yet expired past today
     const todayStr = new Date().toISOString().slice(0, 10);
     const isNotExpiredClosed = (ipo) => {
-        if (ipo.status !== 'closed') return true; // non-closed always passes
-        // If closeDate is known and is before today, it's truly expired — exclude from Active
+        if (ipo.status !== 'closed') return true;
         if (ipo.closeDate && ipo.closeDate < todayStr) return false;
         return true;
     };
@@ -61,11 +78,11 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
     const filteredIPOs = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
         const todayLocal = new Date().toISOString().slice(0, 10);
+
         return currentMarketIpos.filter((ipo) => {
             // Status match
             if (statusFilter === 'active') {
                 if (ipo.status === 'listed') return false;
-                // Exclude closed IPOs whose close date has already passed today
                 if (ipo.status === 'closed' && ipo.closeDate && ipo.closeDate < todayLocal) return false;
             } else if (statusFilter !== 'all') {
                 if (ipo.status !== statusFilter) return false;
@@ -88,7 +105,7 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
         });
     }, [currentMarketIpos, statusFilter, boardFilter, searchQuery]);
 
-    // Fast counts — Active count also excludes expired closed IPOs
+    // Fast counts
     const activeOfferingsCount = currentMarketIpos.filter((i) => i.status !== 'listed' && isNotExpiredClosed(i)).length;
     const openCount = currentMarketIpos.filter((i) => i.status === 'open').length;
     const upcomingCount = currentMarketIpos.filter((i) => i.status === 'upcoming').length;
@@ -99,16 +116,16 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
     const mainboardSidebarIpos = useMemo(() => {
         const mb = currentMarketIpos.filter((i) => i.board === 'Mainboard' && i.status !== 'listed');
         if (mb.length >= 6) return mb.slice(0, 8);
-        const fallback = allIpos.filter((i) => i.board === 'Mainboard' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
+        const fallback = liveIpos.filter((i) => i.board === 'Mainboard' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
         return [...mb, ...fallback.filter((f) => !mb.some((m) => m.id === f.id))].slice(0, 8);
-    }, [currentMarketIpos]);
+    }, [currentMarketIpos, liveIpos]);
 
     const smeSidebarIpos = useMemo(() => {
         const sme = currentMarketIpos.filter((i) => i.board === 'SME' && i.status !== 'listed');
         if (sme.length >= 6) return sme.slice(0, 8);
-        const fallback = allIpos.filter((i) => i.board === 'SME' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
+        const fallback = liveIpos.filter((i) => i.board === 'SME' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
         return [...sme, ...fallback.filter((f) => !sme.some((m) => m.id === f.id))].slice(0, 8);
-    }, [currentMarketIpos]);
+    }, [currentMarketIpos, liveIpos]);
 
     const formattedDate = new Intl.DateTimeFormat('en-US', {
         month: 'long',
@@ -121,8 +138,8 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Main Content Column */}
                 <div className="lg:col-span-8 xl:col-span-9 min-w-0">
-                    {/* Natural Editorial Header (Direct Render - No Boxed Card) */}
-                    <div className="mb-6">
+                    {/* Natural Editorial Header */}
+                    <div className="mb-5">
                         <h1 className="text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight leading-snug mb-2.5">
                             IPO GMP Today: Live IPO Grey Market Premium
                         </h1>
@@ -132,7 +149,6 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                             <span className="inline-flex items-center gap-1.5">
                                 <Calendar size={14} className="text-slate-400" /> {formattedDate}
                             </span>
-
                         </div>
 
                         {/* Social Follow Actions */}
@@ -169,74 +185,180 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                         </p>
                     </div>
 
-                    {/* Section Subheader & Controls */}
-                    <div className="mb-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
-                            <h2 className="text-lg sm:text-xl font-bold text-slate-900 m-0 tracking-tight">
-                                {boardFilter === 'Mainboard'
-                                    ? 'Current Mainboard IPO'
-                                    : boardFilter === 'SME'
-                                        ? 'Current SME IPO'
-                                        : 'Current Mainboard & SME IPO'}
-                            </h2>
-
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-                                <Segmented
-                                    value={boardFilter}
-                                    onChange={(val) => setBoardFilter(val)}
-                                    options={[
-                                        { label: 'All Boards', value: 'all' },
-                                        { label: 'Mainboard', value: 'Mainboard' },
-                                        { label: 'SME', value: 'SME' },
-                                    ]}
-                                    className="board-segmented w-full sm:w-auto"
-                                />
-                                <Input
-                                    placeholder="Search company..."
-                                    prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    allowClear
-                                    className="w-full sm:w-52"
-                                />
-                            </div>
+                    {/* Streamlined Controls Bar (Clean UX - InvestorGain Reference) */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3.5">
+                        {/* Board Pill Switcher: All | Mainboard | SME */}
+                        <div className="inline-flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setBoardFilter('all')}
+                                className={`px-4 py-1.5 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer ${
+                                    boardFilter === 'all'
+                                        ? 'bg-[#056a42] text-white shadow-sm border border-[#056a42]'
+                                        : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400'
+                                }`}
+                            >
+                                All
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBoardFilter('Mainboard')}
+                                className={`px-4 py-1.5 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer ${
+                                    boardFilter === 'Mainboard'
+                                        ? 'bg-[#056a42] text-white shadow-sm border border-[#056a42]'
+                                        : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400'
+                                }`}
+                            >
+                                Mainboard
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBoardFilter('SME')}
+                                className={`px-4 py-1.5 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer ${
+                                    boardFilter === 'SME'
+                                        ? 'bg-[#056a42] text-white shadow-sm border border-[#056a42]'
+                                        : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400'
+                                }`}
+                            >
+                                SME
+                            </button>
                         </div>
 
-                        {/* Status Filter Tabs */}
-                        <div className="mt-2.5">
-                            <Tabs
-                                activeKey={statusFilter}
-                                onChange={(key) => setStatusFilter(key)}
-                                items={[
-                                    { key: 'active', label: `Active (${activeOfferingsCount})` },
-                                    { key: 'open', label: `Open (${openCount})` },
-                                    { key: 'upcoming', label: `Upcoming (${upcomingCount})` },
-                                    { key: 'closed', label: `Closed (${closedCount})` },
-                                    { key: 'listed', label: `Listed (${listedCount})` },
-                                    { key: 'all', label: `All (${currentMarketIpos.length})` },
-                                ]}
-                                className="compact-status-tabs"
+                        {/* Right: View Toggle, Filters Popover & Search */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {/* Grid / Table View Switcher */}
+                            <div className="inline-flex rounded-md p-0.5 bg-slate-100 border border-slate-200 text-xs font-semibold">
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('grid')}
+                                    className={`px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1 ${
+                                        viewMode === 'grid'
+                                            ? 'bg-white text-slate-900 shadow-sm font-bold'
+                                            : 'text-slate-500 hover:text-slate-800'
+                                    }`}
+                                    title="Grid Card View"
+                                >
+                                    <LayoutGrid size={13} />
+                                    <span>GRID</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('table')}
+                                    className={`px-2.5 py-1 rounded transition-colors cursor-pointer flex items-center gap-1 ${
+                                        viewMode === 'table'
+                                            ? 'bg-white text-[#056a42] shadow-sm font-bold'
+                                            : 'text-slate-500 hover:text-slate-800'
+                                    }`}
+                                    title="Master Table View"
+                                >
+                                    <List size={13} />
+                                    <span>TABLE</span>
+                                </button>
+                            </div>
+
+                            {/* Filters Button with Clean Popover */}
+                            <Popover
+                                content={
+                                    <div className="w-56 p-1 space-y-3">
+                                        <div>
+                                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                                                Offering Status
+                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                {[
+                                                    { key: 'active', label: `Active (${activeOfferingsCount})` },
+                                                    { key: 'open', label: `Live Open (${openCount})` },
+                                                    { key: 'upcoming', label: `Upcoming (${upcomingCount})` },
+                                                    { key: 'closed', label: `Closed (${closedCount})` },
+                                                    { key: 'listed', label: `Listed (${listedCount})` },
+                                                    { key: 'all', label: `All Market Issues (${currentMarketIpos.length})` },
+                                                ].map((opt) => (
+                                                    <button
+                                                        key={opt.key}
+                                                        type="button"
+                                                        onClick={() => setStatusFilter(opt.key)}
+                                                        className={`text-left px-2.5 py-1.5 rounded text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                                                            statusFilter === opt.key
+                                                                ? 'bg-emerald-50 text-[#056a42] font-semibold'
+                                                                : 'text-slate-700 hover:bg-slate-50'
+                                                        }`}
+                                                    >
+                                                        <span>{opt.label}</span>
+                                                        {statusFilter === opt.key && <span className="text-[#056a42] font-bold">✓</span>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {statusFilter !== 'active' && (
+                                            <div className="pt-2 border-t border-slate-100 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setStatusFilter('active')}
+                                                    className="text-xs text-[#056a42] hover:underline font-semibold cursor-pointer"
+                                                >
+                                                    Reset to Active
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                }
+                                trigger="click"
+                                placement="bottomRight"
+                            >
+                                <Button
+                                    size="middle"
+                                    className={`!inline-flex !items-center !gap-1.5 !text-xs !font-semibold !rounded-md ${
+                                        statusFilter !== 'active'
+                                            ? '!border-[#056a42] !text-[#056a42] !bg-emerald-50/50'
+                                            : '!border-slate-300 !text-slate-700 hover:!border-slate-400'
+                                    }`}
+                                >
+                                    <SlidersHorizontal size={13} />
+                                    <span>Filters</span>
+                                    {statusFilter !== 'active' && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#056a42]" />
+                                    )}
+                                </Button>
+                            </Popover>
+
+                            {/* Search IPOs Input */}
+                            <Input
+                                placeholder="Search IPOs..."
+                                prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                allowClear
+                                className="w-36 sm:w-48 !rounded-md text-xs"
                             />
                         </div>
                     </div>
 
-                    {/* Direct Master Table */}
-                    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                        <div className="sm:hidden flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px] text-slate-500 font-medium select-none">
-                            <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Live GMP Table
-                            </span>
-                            <span className="text-[#056a42] font-semibold flex items-center gap-1">
-                                Swipe table &rarr;
-                            </span>
+                    {/* Offerings Content: Table or Grid */}
+                    {viewMode === 'table' ? (
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                            <div className="sm:hidden flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px] text-slate-500 font-medium select-none">
+                                <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Live GMP Table
+                                </span>
+                                <span className="text-[#056a42] font-semibold flex items-center gap-1">
+                                    Swipe table &rarr;
+                                </span>
+                            </div>
+                            <IPOGmpTable
+                                ipos={filteredIPOs}
+                                watchlist={watchlist}
+                                onToggleWatchlist={onToggleWatchlist}
+                            />
                         </div>
-                        <IPOGmpTable
+                    ) : (
+                        <IPOGmpGrid
                             ipos={filteredIPOs}
                             watchlist={watchlist}
                             onToggleWatchlist={onToggleWatchlist}
                         />
-                    </div>
+                    )}
 
                     {/* Educational & SEO Knowledge Base */}
                     <IPOSeoContent />
@@ -279,6 +401,48 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                                     </Link>
                                 </li>
                             ))}
+                        </ul>
+                    </div>
+
+                    {/* Quick Links Widget */}
+                    <div className="border border-slate-200 bg-white shadow-sm overflow-hidden rounded-lg p-3.5">
+                        <h4 className="text-xs font-bold text-slate-800 tracking-wide uppercase mb-2.5 flex items-center gap-1.5">
+                            <span>⚡</span> Quick Links
+                        </h4>
+                        <ul className="space-y-1.5 text-xs text-slate-700">
+                            <li>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setBoardFilter('Mainboard')} 
+                                    className="hover:text-[#056a42] hover:underline text-left block w-full py-0.5 cursor-pointer"
+                                >
+                                    &bull; Current Mainboard IPOs
+                                </button>
+                            </li>
+                            <li>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setBoardFilter('SME')} 
+                                    className="hover:text-[#056a42] hover:underline text-left block w-full py-0.5 cursor-pointer"
+                                >
+                                    &bull; Current SME IPOs
+                                </button>
+                            </li>
+                            <li>
+                                <Link to="/ipos" className="hover:text-[#056a42] hover:underline block py-0.5">
+                                    &bull; All IPO Calendar 2026
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/dashboard" className="hover:text-[#056a42] hover:underline block py-0.5">
+                                    &bull; Check Allotment Status Links
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/about" className="hover:text-[#056a42] hover:underline block py-0.5">
+                                    &bull; About IPOGMP & Methodology
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                 </aside>

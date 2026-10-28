@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard.jsx';
 import Home from './pages/Home.jsx';
 import IPODetail from './pages/IPODetail.jsx';
 import IPOList from './pages/IPOList.jsx';
+import About from './pages/About.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+import Disclaimer from './pages/Disclaimer.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
@@ -78,6 +81,9 @@ export default function App() {
                         <Route path="/ipos" element={<IPOList watchlist={watchlist} onToggleWatchlist={toggleWatchlist} />} />
                         <Route path="/ipos/:id" element={<IPODetail watchlist={watchlist} onToggleWatchlist={toggleWatchlist} />} />
                         <Route path="/dashboard" element={<Dashboard watchlist={watchlist} onToggleWatchlist={toggleWatchlist} />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/disclaimer" element={<Disclaimer />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </Layout>

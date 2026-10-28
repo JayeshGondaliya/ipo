@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Tag } from 'antd';
-import { ChartNoAxesCombined, CalendarDays, ClipboardCheck, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar({ watchlistCount = 0 }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function Navbar({ watchlistCount = 0 }) {
                     <NavLink
                         onClick={closeMenu}
                         className={({ isActive }) =>
-                            `relative inline-flex items-center gap-2 h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
+                            `relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
                                 isActive
                                     ? 'text-primary-green font-semibold bg-emerald-50/60 md:bg-transparent md:after:absolute md:after:bottom-0 md:after:left-4 md:after:right-4 md:after:h-[2.5px] md:after:bg-primary-green md:after:rounded-t-sm'
                                     : 'text-slate-600 hover:text-primary-green hover:bg-slate-50 md:hover:bg-transparent'
@@ -37,14 +37,13 @@ export default function Navbar({ watchlistCount = 0 }) {
                         end
                         title="Live GMP"
                     >
-                        <ChartNoAxesCombined aria-hidden="true" size={16} />
                         <span>Live GMP</span>
                     </NavLink>
 
                     <NavLink
                         onClick={closeMenu}
                         className={({ isActive }) =>
-                            `relative inline-flex items-center gap-2 h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
+                            `relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
                                 isActive
                                     ? 'text-primary-green font-semibold bg-emerald-50/60 md:bg-transparent md:after:absolute md:after:bottom-0 md:after:left-4 md:after:right-4 md:after:h-[2.5px] md:after:bg-primary-green md:after:rounded-t-sm'
                                     : 'text-slate-600 hover:text-primary-green hover:bg-slate-50 md:hover:bg-transparent'
@@ -53,17 +52,30 @@ export default function Navbar({ watchlistCount = 0 }) {
                         to="/ipos"
                         title="All IPOs Calendar"
                     >
-                        <CalendarDays aria-hidden="true" size={16} />
                         <span>All IPOs</span>
+                    </NavLink>
+
+                    <NavLink
+                        onClick={closeMenu}
+                        className={({ isActive }) =>
+                            `relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
+                                isActive
+                                    ? 'text-primary-green font-semibold bg-emerald-50/60 md:bg-transparent md:after:absolute md:after:bottom-0 md:after:left-4 md:after:right-4 md:after:h-[2.5px] md:after:bg-primary-green md:after:rounded-t-sm'
+                                    : 'text-slate-600 hover:text-primary-green hover:bg-slate-50 md:hover:bg-transparent'
+                            }`
+                        }
+                        to="/about"
+                        title="About IPOGMP"
+                    >
+                        <span>About</span>
                     </NavLink>
 
                     {/* Disabled Check Allotment Item - User cannot open/click */}
                     <span
-                        className="relative inline-flex items-center gap-2 h-10 md:h-16 px-3 md:px-4 text-sm font-medium text-slate-400 cursor-not-allowed select-none opacity-80"
+                        className="relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium text-slate-400 cursor-not-allowed select-none opacity-80"
                         aria-disabled="true"
                         title="Coming Soon - Check Allotment is currently unavailable"
                     >
-                        <ClipboardCheck aria-hidden="true" size={16} className="text-slate-400" />
                         <span>Check Allotment</span>
                         <Tag
                             color="warning"

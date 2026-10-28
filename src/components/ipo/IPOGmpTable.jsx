@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Table, Tag, Input, Select, Button, Tooltip, Drawer, Slider, InputNumber, Statistic, Space, Dropdown } from 'antd';
+import { Table, Tag, Button, Tooltip, Drawer, Slider, InputNumber, Statistic, Dropdown } from 'antd';
 import { 
-    SearchOutlined, 
     CalculatorOutlined, 
     StarOutlined, 
     StarFilled, 
@@ -12,7 +11,35 @@ import {
     MoreOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import { formatINR, formatPercentage } from '../../utils/gmp.js';
+import { formatPercentage } from '../../utils/gmp.js';
+
+function StarRating({ percent = 0 }) {
+    let filled = 3;
+    if (percent >= 50) filled = 5;
+    else if (percent >= 25) filled = 4.5;
+    else if (percent >= 10) filled = 4;
+    else if (percent > 0) filled = 3.5;
+    else if (percent === 0) filled = 3;
+    else filled = 2;
+
+    const fullStars = Math.floor(filled);
+    const hasHalf = filled % 1 !== 0;
+    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+    return (
+        <span className="inline-flex items-center gap-0.5 text-amber-500 text-[13px] leading-none select-none" title={`Rating: ${filled}/5 based on GMP strength`}>
+            {Array.from({ length: fullStars }).map((_, i) => (
+                <span key={`f-${i}`}>★</span>
+            ))}
+            {hasHalf && (
+                <span key="half" className="opacity-75">★</span>
+            )}
+            {Array.from({ length: emptyStars }).map((_, i) => (
+                <span key={`e-${i}`} className="text-slate-200">★</span>
+            ))}
+        </span>
+    );
+}
 
 function formatDate(val) {
     if (!val) return '—';
@@ -35,7 +62,7 @@ function formatShortDateRange(openVal, closeVal) {
         const m1 = new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d1);
         const m2 = new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d2);
         if (m1 === m2) {
-            return `${day1}-${day2} ${m1}`;
+            return `${day1} - ${day2} ${m1}`;
         }
         return `${day1} ${m1} - ${day2} ${m2}`;
     } catch {
@@ -57,35 +84,56 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
     };
 
     const statusMap = {
-        open: { label: 'Live Open', className: 'status-open' },
-        upcoming: { label: 'Upcoming', className: 'status-upcoming' },
-        closed: { label: 'Closed', className: 'status-closed' },
-        listed: { label: 'Listed', className: 'status-listed' },
+        open: { label: 'LIVE OPEN', bgClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        upcoming: { label: 'UPCOMING', bgClass: 'bg-amber-50 text-amber-700 border-amber-200/70' },
+        closed: { label: 'CLOSED', bgClass: 'bg-slate-100 text-slate-600 border-slate-200' },
+        listed: { label: 'LISTED', bgClass: 'bg-blue-50 text-blue-700 border-blue-200' },
     };
 
     const columns = [
         {
-            title: 'Company',
+            title: 'COMPANY',
             dataIndex: 'company',
             key: 'company',
             render: (text, record) => {
                 const isSME = record.board === 'SME';
-                const statusInfo = statusMap[record.status] || { label: record.status, className: '' };
+                const statusInfo = statusMap[record.status] || { label: (record.status || '').toUpperCase(), bgClass: 'bg-slate-100 text-slate-600 border-slate-200' };
+                const sectorName = record.sector && record.sector !== 'Diversified' && record.sector !== 'SME Growth'
+                    ? record.sector
+                    : (isSME ? 'SME ENTERPRISE' : 'MAINBOARD');
+
                 return (
-                    <div className="table-company-cell">
-                        <div className="table-company-info">
+                    <div className="table-company-cell flex items-start gap-2.5">
+                        {record.logo ? (
+                            <img
+                                src={record.logo}
+                                alt={record.company}
+                                className="w-8 h-8 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 mt-0.5"
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                            />
+                        ) : (
+                            <div className="w-8 h-8 rounded-md bg-emerald-50 text-[#056a42] font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 mt-0.5">
+                                {record.initials || record.company?.slice(0, 2).toUpperCase()}
+                            </div>
+                        )}
+                        <div className="table-company-info min-w-0">
                             <Link to={`/ipos/${record.id}`} className="company-title-link">
                                 {text}
                             </Link>
-                            <div className="company-status-row">
-                                <span className={`company-status-text ${statusInfo.className}`}>
+                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-none mt-0.5 block truncate">
+                                {sectorName}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 leading-tight">
+                                    {record.board}
+                                </span>
+                                <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded border leading-tight ${statusInfo.bgClass}`}>
                                     {statusInfo.label}
                                 </span>
-                                <Tag color={isSME ? 'cyan' : 'green'} className="board-badge">
-                                    {record.board}
-                                </Tag>
                                 {record.symbol && record.symbol !== '—' && (
-                                    <span className="symbol-meta">{record.symbol}</span>
+                                    <span className="text-[10px] text-slate-400 font-mono">{record.symbol}</span>
                                 )}
                             </div>
                         </div>
@@ -95,17 +143,28 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
             sorter: (a, b) => a.company.localeCompare(b.company),
         },
         {
-            title: 'GMP*',
+            title: 'GMP',
             key: 'gmp',
-            width: 82,
+            width: 120,
             render: (_, record) => {
                 const isPositive = record.gmp > 0;
                 const isNegative = record.gmp < 0;
+                const pct = record.gmpPercent || 0;
+                const estPrice = record.estListingPrice || (record.price ? record.price + (record.gmp || 0) : 0);
+
                 return (
-                    <div className="gmp-cell">
-                        <span className={`gmp-val-main ${isPositive ? 'positive' : isNegative ? 'negative' : 'neutral'}`}>
+                    <div className="flex flex-col items-start gap-0.5">
+                        <span className={`text-[15px] font-bold leading-tight ${isPositive ? 'text-emerald-700' : isNegative ? 'text-red-600' : 'text-slate-800'}`}>
                             {isPositive ? `+₹${record.gmp}` : isNegative ? `-₹${Math.abs(record.gmp)}` : '₹0'}
                         </span>
+                        <span className={`text-xs font-semibold leading-tight ${isPositive ? 'text-emerald-700' : isNegative ? 'text-red-600' : 'text-slate-500'}`}>
+                            {isPositive ? `+${pct}% est.` : isNegative ? `${pct}% est.` : '0.00% est.'}
+                        </span>
+                        {estPrice > 0 && (
+                            <span className="text-[10.5px] text-slate-400 leading-tight">
+                                Est. ₹{estPrice.toLocaleString('en-IN')}
+                            </span>
+                        )}
                     </div>
                 );
             },
@@ -113,39 +172,44 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
             defaultSortOrder: 'descend',
         },
         {
-            title: 'Trend',
-            key: 'trend',
+            title: 'GMP RATING',
+            key: 'rating',
+            width: 130,
             align: 'center',
-            width: 48,
             render: (_, record) => {
                 const trend = record.gmpTrend || 'neutral';
                 const trendConfig = {
-                    up:      { icon: <ArrowUpOutlined style={{ color: '#16a34a', fontSize: 14, fontWeight: 700 }} />, label: 'GMP Rising' },
-                    down:    { icon: <ArrowDownOutlined style={{ color: '#dc2626', fontSize: 14, fontWeight: 700 }} />, label: 'GMP Falling' },
-                    neutral: { icon: <MinusOutlined style={{ color: '#94a3b8', fontSize: 13 }} />, label: 'GMP Steady' },
+                    up:      { icon: <ArrowUpOutlined style={{ color: '#16a34a', fontSize: 13, fontWeight: 700 }} />, label: 'GMP Rising', text: 'Rising' },
+                    down:    { icon: <ArrowDownOutlined style={{ color: '#dc2626', fontSize: 13, fontWeight: 700 }} />, label: 'GMP Falling', text: 'Falling' },
+                    neutral: { icon: <MinusOutlined style={{ color: '#94a3b8', fontSize: 12 }} />, label: 'GMP Steady', text: 'Steady' },
                 };
                 const item = trendConfig[trend] || trendConfig.neutral;
+
                 return (
-                    <Tooltip title={item.label}>
-                        <span aria-label={item.label} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {item.icon}
-                        </span>
-                    </Tooltip>
+                    <div className="flex flex-col items-center justify-center gap-1">
+                        <StarRating percent={record.gmpPercent || 0} />
+                        <Tooltip title={item.label}>
+                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 cursor-pointer">
+                                {item.icon}
+                                <span>{item.text}</span>
+                            </span>
+                        </Tooltip>
+                    </div>
                 );
             },
-            sorter: (a, b) => (a.gmpTrend || '').localeCompare(b.gmpTrend || ''),
+            sorter: (a, b) => (a.gmpPercent || 0) - (b.gmpPercent || 0),
         },
         {
-            title: 'Price Band',
+            title: 'PRICE BAND',
             key: 'price',
-            width: 108,
+            width: 115,
             render: (_, record) => (
                 <div className="table-cell-group">
-                    <span className="price-band-val">
+                    <span className="price-band-val font-semibold text-slate-900">
                         {record.price ? `₹${record.price.toLocaleString('en-IN')}` : (record.priceRange || '—')}
                     </span>
                     {record.lotSize && (
-                        <span className="price-lot-meta">
+                        <span className="text-xs text-slate-500">
                             Lot: {record.lotSize} sh
                         </span>
                     )}
@@ -154,33 +218,11 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
             sorter: (a, b) => (a.price || 0) - (b.price || 0),
         },
         {
-            title: 'Est. Gain',
-            key: 'estGain',
-            width: 122,
-            render: (_, record) => {
-                const estPrice = record.estListingPrice || record.price || 0;
-                const pct = record.gmpPercent || 0;
-                const isPos = pct > 0;
-                const isNeg = pct < 0;
-                return (
-                    <div className="est-gain-cell">
-                        <span className="est-gain-val">
-                            ₹{estPrice.toLocaleString('en-IN')}
-                        </span>
-                        <span className={`gain-pct-badge ${isPos ? 'positive' : isNeg ? 'negative' : 'neutral'}`}>
-                            {isPos ? ` (+${pct}%)` : isNeg ? ` (${pct}%)` : ' (0.00%)'}
-                        </span>
-                    </div>
-                );
-            },
-            sorter: (a, b) => (a.gmpPercent || 0) - (b.gmpPercent || 0),
-        },
-        {
-            title: 'Date',
-            key: 'date',
-            width: 95,
+            title: 'PERIOD',
+            key: 'period',
+            width: 115,
             render: (_, record) => (
-                <span className="table-date-text">
+                <span className="table-date-text text-[13px] font-medium text-slate-700 whitespace-nowrap">
                     {formatShortDateRange(record.openDate, record.closeDate)}
                 </span>
             ),
@@ -189,7 +231,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
             title: '',
             key: 'actions',
             align: 'center',
-            width: 40,
+            width: 44,
             render: (_, record) => {
                 const isSaved = watchlist.includes(record.id);
                 const menuItems = [
@@ -254,7 +296,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
                 dataSource={ipos}
                 columns={columns}
                 rowKey="id"
-                scroll={{ x: 650 }}
+                scroll={{ x: 640 }}
                 pagination={{ 
                     pageSize: 20, 
                     showSizeChanger: true, 
@@ -264,7 +306,7 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
                 className="custom-antd-table"
             />
 
-            {/* Ant Design Quick Lot Profit Calculator Drawer */}
+            {/* Quick Lot Profit Calculator Drawer */}
             <Drawer
                 title={
                     <div className="drawer-title-box">
