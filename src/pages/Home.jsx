@@ -43,7 +43,7 @@ function formatSidebarDates(openVal, closeVal) {
 export default function Home({ watchlist = [], onToggleWatchlist }) {
     const [liveIpos, setLiveIpos] = useState(allIpos);
     const [boardFilter, setBoardFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('active');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
 
@@ -59,31 +59,27 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
         };
     }, []);
 
-    // Focused Current Market Pool
+    // Focused Current Market Pool: Active offerings first, then recently listed offerings sorted by date
     const currentMarketIpos = useMemo(() => {
         const active = liveIpos.filter((i) => i.status !== 'listed');
-        const recentListed = liveIpos.filter((i) => i.status === 'listed').slice(0, 25);
-        return [...active, ...recentListed];
+        const sortedListed = liveIpos
+            .filter((i) => i.status === 'listed')
+            .sort((a, b) => {
+                const dateA = a.listingDate || a.closeDate || '';
+                const dateB = b.listingDate || b.closeDate || '';
+                return dateB.localeCompare(dateA);
+            });
+        return [...active, ...sortedListed];
     }, [liveIpos]);
-
-    // Helper: returns true if a closed IPO's subscription window has NOT yet expired past today
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const isNotExpiredClosed = (ipo) => {
-        if (ipo.status !== 'closed') return true;
-        if (ipo.closeDate && ipo.closeDate < todayStr) return false;
-        return true;
-    };
 
     // Filtered IPOs
     const filteredIPOs = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
-        const todayLocal = new Date().toISOString().slice(0, 10);
 
         return currentMarketIpos.filter((ipo) => {
             // Status match
             if (statusFilter === 'active') {
                 if (ipo.status === 'listed') return false;
-                if (ipo.status === 'closed' && ipo.closeDate && ipo.closeDate < todayLocal) return false;
             } else if (statusFilter !== 'all') {
                 if (ipo.status !== statusFilter) return false;
             }
@@ -98,34 +94,83 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
             }
             return true;
         }).sort((a, b) => {
+            // Priority: 0: open, 1: upcoming, 2: closed, 3: listed
             const statusPriority = { open: 0, upcoming: 1, closed: 2, listed: 3 };
             const priorityDiff = (statusPriority[a.status] ?? 4) - (statusPriority[b.status] ?? 4);
             if (priorityDiff !== 0) return priorityDiff;
-            return (b.gmpPercent || 0) - (a.gmpPercent || 0);
+
+            // Tie-breaking within same status
+            if (a.status === 'open') {
+                // Open offerings: highest GMP first, then closing sooner
+                const gmpDiff = (b.gmp || 0) - (a.gmp || 0);
+                if (gmpDiff !== 0) return gmpDiff;
+                if (a.closeDate && b.closeDate) return a.closeDate.localeCompare(b.closeDate);
+                return (b.gmpPercent || 0) - (a.gmpPercent || 0);
+            }
+
+            if (a.status === 'upcoming') {
+                // Upcoming offerings: opening sooner first, then higher GMP
+                if (a.openDate && b.openDate && a.openDate !== b.openDate) {
+                    return a.openDate.localeCompare(b.openDate);
+                }
+                return (b.gmp || 0) - (a.gmp || 0);
+            }
+
+            if (a.status === 'closed') {
+                // Closed: most recently closed first
+                if (a.closeDate && b.closeDate && a.closeDate !== b.closeDate) {
+                    return b.closeDate.localeCompare(a.closeDate);
+                }
+                return (b.gmp || 0) - (a.gmp || 0);
+            }
+
+            if (a.status === 'listed') {
+                // Listed: most recently listed first
+                const dateA = a.listingDate || a.closeDate || '';
+                const dateB = b.listingDate || b.closeDate || '';
+                if (dateA && dateB && dateA !== dateB) {
+                    return dateB.localeCompare(dateA);
+                }
+                return (b.gmp || 0) - (a.gmp || 0);
+            }
+
+            return (b.gmp || 0) - (a.gmp || 0);
         });
     }, [currentMarketIpos, statusFilter, boardFilter, searchQuery]);
 
     // Fast counts
-    const activeOfferingsCount = currentMarketIpos.filter((i) => i.status !== 'listed' && isNotExpiredClosed(i)).length;
     const openCount = currentMarketIpos.filter((i) => i.status === 'open').length;
     const upcomingCount = currentMarketIpos.filter((i) => i.status === 'upcoming').length;
     const closedCount = currentMarketIpos.filter((i) => i.status === 'closed').length;
     const listedCount = currentMarketIpos.filter((i) => i.status === 'listed').length;
+    const activeOfferingsCount = openCount + upcomingCount;
 
-    // Sidebar lists
+    // Sidebar lists: active first, then recent listed
     const mainboardSidebarIpos = useMemo(() => {
-        const mb = currentMarketIpos.filter((i) => i.board === 'Mainboard' && i.status !== 'listed');
-        if (mb.length >= 6) return mb.slice(0, 8);
-        const fallback = liveIpos.filter((i) => i.board === 'Mainboard' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
-        return [...mb, ...fallback.filter((f) => !mb.some((m) => m.id === f.id))].slice(0, 8);
-    }, [currentMarketIpos, liveIpos]);
+        const active = liveIpos.filter((i) => i.board === 'Mainboard' && i.status !== 'listed');
+        if (active.length >= 8) return active.slice(0, 8);
+        const recentListed = liveIpos
+            .filter((i) => i.board === 'Mainboard' && i.status === 'listed')
+            .sort((a, b) => {
+                const dateA = a.listingDate || a.closeDate || '';
+                const dateB = b.listingDate || b.closeDate || '';
+                return dateB.localeCompare(dateA);
+            });
+        return [...active, ...recentListed].slice(0, 8);
+    }, [liveIpos]);
 
     const smeSidebarIpos = useMemo(() => {
-        const sme = currentMarketIpos.filter((i) => i.board === 'SME' && i.status !== 'listed');
-        if (sme.length >= 6) return sme.slice(0, 8);
-        const fallback = liveIpos.filter((i) => i.board === 'SME' && (i.status === 'upcoming' || i.status === 'open' || i.status === 'closed'));
-        return [...sme, ...fallback.filter((f) => !sme.some((m) => m.id === f.id))].slice(0, 8);
-    }, [currentMarketIpos, liveIpos]);
+        const active = liveIpos.filter((i) => i.board === 'SME' && i.status !== 'listed');
+        if (active.length >= 8) return active.slice(0, 8);
+        const recentListed = liveIpos
+            .filter((i) => i.board === 'SME' && i.status === 'listed')
+            .sort((a, b) => {
+                const dateA = a.listingDate || a.closeDate || '';
+                const dateB = b.listingDate || b.closeDate || '';
+                return dateB.localeCompare(dateA);
+            });
+        return [...active, ...recentListed].slice(0, 8);
+    }, [liveIpos]);
 
     const formattedDate = new Intl.DateTimeFormat('en-US', {
         month: 'long',
@@ -266,12 +311,12 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                                             </span>
                                             <div className="flex flex-col gap-1">
                                                 {[
+                                                    { key: 'all', label: `All (Active & Listed)` },
                                                     { key: 'active', label: `Active (${activeOfferingsCount})` },
                                                     { key: 'open', label: `Live Open (${openCount})` },
                                                     { key: 'upcoming', label: `Upcoming (${upcomingCount})` },
                                                     { key: 'closed', label: `Closed (${closedCount})` },
                                                     { key: 'listed', label: `Listed (${listedCount})` },
-                                                    { key: 'all', label: `All Market Issues (${currentMarketIpos.length})` },
                                                 ].map((opt) => (
                                                     <button
                                                         key={opt.key}
@@ -290,14 +335,14 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                                             </div>
                                         </div>
 
-                                        {statusFilter !== 'active' && (
+                                        {statusFilter !== 'all' && (
                                             <div className="pt-2 border-t border-slate-100 text-right">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setStatusFilter('active')}
+                                                    onClick={() => setStatusFilter('all')}
                                                     className="text-xs text-[#056a42] hover:underline font-semibold cursor-pointer"
                                                 >
-                                                    Reset to Active
+                                                    Reset to All
                                                 </button>
                                             </div>
                                         )}
@@ -309,14 +354,14 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                                 <Button
                                     size="middle"
                                     className={`!inline-flex !items-center !gap-1.5 !text-xs !font-semibold !rounded-md ${
-                                        statusFilter !== 'active'
+                                        statusFilter !== 'all'
                                             ? '!border-[#056a42] !text-[#056a42] !bg-emerald-50/50'
                                             : '!border-slate-300 !text-slate-700 hover:!border-slate-400'
                                     }`}
                                 >
                                     <SlidersHorizontal size={13} />
                                     <span>Filters</span>
-                                    {statusFilter !== 'active' && (
+                                    {statusFilter !== 'all' && (
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#056a42]" />
                                     )}
                                 </Button>

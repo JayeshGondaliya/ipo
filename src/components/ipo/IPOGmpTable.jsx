@@ -169,7 +169,6 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
                 );
             },
             sorter: (a, b) => (a.gmp || 0) - (b.gmp || 0),
-            defaultSortOrder: 'descend',
         },
         {
             title: 'GMP RATING',

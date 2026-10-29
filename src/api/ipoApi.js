@@ -48,15 +48,44 @@ export function normalizeIpo(raw, index = 0) {
     const priceBand = raw.price_band || raw.issue?.price_band || null;
     const issueSize = raw.issue_size || raw.issue?.issue_size || null;
 
+    // Calculate today's date in Indian Standard Time (YYYY-MM-DD)
+    const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+
+    const rawStatus = (raw.status || '').toLowerCase();
+    const stage = (raw.stage || '').toLowerCase();
+
+    // Days elapsed since close date (if any)
+    const closeDiffDays = closeDate
+        ? Math.floor((new Date(todayStr) - new Date(closeDate)) / (1000 * 60 * 60 * 24))
+        : 0;
+
+    // Determine if the IPO is already listed
+    const isListed = Boolean(
+        raw.is_listed ||
+        stage === 'listed' ||
+        stage === 'post_listing' ||
+        rawStatus.includes('listed') ||
+        (listingDate && listingDate <= todayStr) ||
+        closeDiffDays > 14
+    );
+
     // Normalize status into lowercase: 'open', 'upcoming', 'closed', 'listed'
     let status = 'upcoming';
-    const rawStatus = (raw.status || '').toLowerCase();
-    if (rawStatus.includes('open') || raw.stage === 'live') {
-        status = 'open';
-    } else if (rawStatus.includes('closed') || raw.stage === 'closed') {
-        status = 'closed';
-    } else if (rawStatus.includes('listed') || raw.is_listed) {
+    if (isListed) {
         status = 'listed';
+    } else if (closeDate && closeDate < todayStr) {
+        // Subscription closed, waiting for allotment / listing
+        status = 'closed';
+    } else if (openDate && openDate <= todayStr && (!closeDate || closeDate >= todayStr)) {
+        // Active bidding open today
+        status = 'open';
+    } else if (openDate && openDate > todayStr) {
+        // Opening on future date
+        status = 'upcoming';
+    } else if (rawStatus.includes('open')) {
+        status = 'open';
+    } else if (rawStatus.includes('closed') || stage === 'closed') {
+        status = 'closed';
     } else {
         status = 'upcoming';
     }
@@ -98,7 +127,7 @@ export function normalizeIpo(raw, index = 0) {
         rawStatus: raw.status,
         stage: raw.stage || 'announced',
         datesTba: !!raw.dates_tba,
-        isListed: !!raw.is_listed,
+        isListed,
         symbol: symbolDerived,
         price: effectivePrice,
         priceRange: priceBand ? `₹${priceBand}` : (raw.issue_price ? `₹${raw.issue_price}` : `₹${effectivePrice}`),
