@@ -56,6 +56,28 @@ function formatUpdatedOn(updatedAt, updatedAtLabel) {
 }
 
 // Fire rating icons (🔥)
+function CompanyLogo({ logo, initials, company }) {
+    const [failed, setFailed] = useState(false);
+
+    if (logo && !failed) {
+        return (
+            <img
+                src={logo}
+                alt={company}
+                className="w-7 h-7 rounded object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                onError={() => setFailed(true)}
+            />
+        );
+    }
+
+    return (
+        <div className="w-7 h-7 rounded bg-emerald-50 text-[#056a42] font-bold text-[10px] flex items-center justify-center shrink-0 border border-emerald-100 select-none">
+            {initials}
+        </div>
+    );
+}
+
+// Fire rating icons (🔥)
 function FireRating({ percent = 0 }) {
     let fireCount = 1;
     if (percent >= 30) fireCount = 4;
@@ -242,21 +264,30 @@ export default function LiveIpoGmpView({ ipos = [], onRefresh, loading = false }
                             : { letter: 'L', bg: 'bg-[#06b6d4]' };
 
                 return (
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        <Link 
-                            to={`/ipos/${record.id}`} 
-                            className="text-[#136aa6] hover:text-[#0b4d79] font-medium hover:underline text-[13px] leading-tight"
-                        >
-                            {text}
-                        </Link>
-                        {/* Sub type tag (e.g. NSE SME, BSE SME, IPO) */}
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-500 text-white uppercase tracking-wider leading-none">
-                            {subType}
-                        </span>
-                        {/* Status letter badge (O, U, C, L) */}
-                        <span className={`w-4 h-4 rounded-full ${statusBadge.bg} text-white font-bold text-[9px] flex items-center justify-center leading-none`}>
-                            {statusBadge.letter}
-                        </span>
+                    <div className="flex items-center gap-2">
+                        <CompanyLogo
+                            logo={record.logo}
+                            initials={record.initials || record.company?.slice(0, 2).toUpperCase() || '?'}
+                            company={record.company}
+                        />
+                        <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <Link 
+                                    to={`/ipos/${record.id}`} 
+                                    className="text-[#136aa6] hover:text-[#0b4d79] font-medium hover:underline text-[13px] leading-tight"
+                                >
+                                    {text}
+                                </Link>
+                                {/* Sub type tag (e.g. NSE SME, BSE SME, IPO) */}
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-500 text-white uppercase tracking-wider leading-none">
+                                    {subType}
+                                </span>
+                                {/* Status letter badge (O, U, C, L) */}
+                                <span className={`w-4 h-4 rounded-full ${statusBadge.bg} text-white font-bold text-[9px] flex items-center justify-center leading-none`}>
+                                    {statusBadge.letter}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 );
             },

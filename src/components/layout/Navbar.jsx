@@ -37,7 +37,6 @@ export default function Navbar({ watchlistCount = 0 }) {
                         title="Live IPO GMP"
                     >
                         <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Live GMP</span>
                         </span>
                     </NavLink>
@@ -87,20 +86,6 @@ export default function Navbar({ watchlistCount = 0 }) {
                         <span>Contact</span>
                     </NavLink>
 
-                    {/* Disabled Check Allotment Item - User cannot open/click */}
-                    <span
-                        className="relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium text-slate-400 cursor-not-allowed select-none opacity-80"
-                        aria-disabled="true"
-                        title="Coming Soon - Check Allotment is currently unavailable"
-                    >
-                        <span>Check Allotment</span>
-                        <Tag
-                            color="warning"
-                            className="!m-0 !ms-1.5 !text-[11px] !font-semibold !px-1.5 !py-0 !leading-[18px] !rounded !bg-yellow-50 !border-yellow-300 !text-yellow-800 cursor-not-allowed inline-flex items-center"
-                        >
-                            Coming Soon
-                        </Tag>
-                    </span>
                 </div>
 
                 {/* Mobile Menu Toggle Button */}

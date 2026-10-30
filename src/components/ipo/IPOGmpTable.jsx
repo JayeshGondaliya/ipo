@@ -13,6 +13,27 @@ import {
 import { Link } from 'react-router-dom';
 import { formatPercentage } from '../../utils/gmp.js';
 
+function CompanyLogo({ logo, initials, company }) {
+    const [failed, setFailed] = useState(false);
+
+    if (logo && !failed) {
+        return (
+            <img
+                src={logo}
+                alt={company}
+                className="w-8 h-8 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 mt-0.5"
+                onError={() => setFailed(true)}
+            />
+        );
+    }
+
+    return (
+        <div className="w-8 h-8 rounded-md bg-emerald-50 text-[#056a42] font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 mt-0.5 select-none">
+            {initials}
+        </div>
+    );
+}
+
 function StarRating({ percent = 0 }) {
     let filled = 3;
     if (percent >= 50) filled = 5;
@@ -102,22 +123,10 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
                     ? record.sector
                     : (isSME ? 'SME ENTERPRISE' : 'MAINBOARD');
 
+                const initials = record.initials || record.company?.slice(0, 2).toUpperCase() || '?';
                 return (
                     <div className="table-company-cell flex items-start gap-2.5">
-                        {record.logo ? (
-                            <img
-                                src={record.logo}
-                                alt={record.company}
-                                className="w-8 h-8 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 mt-0.5"
-                                onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                }}
-                            />
-                        ) : (
-                            <div className="w-8 h-8 rounded-md bg-emerald-50 text-[#056a42] font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 mt-0.5">
-                                {record.initials || record.company?.slice(0, 2).toUpperCase()}
-                            </div>
-                        )}
+                        <CompanyLogo logo={record.logo} initials={initials} company={record.company} />
                         <div className="table-company-info min-w-0">
                             <Link to={`/ipos/${record.id}`} className="company-title-link">
                                 {text}

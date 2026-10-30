@@ -11,6 +11,27 @@ import {
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
+function CompanyLogo({ logo, initials, company }) {
+    const [failed, setFailed] = useState(false);
+
+    if (logo && !failed) {
+        return (
+            <img
+                src={logo}
+                alt={company}
+                className="w-9 h-9 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                onError={() => setFailed(true)}
+            />
+        );
+    }
+
+    return (
+        <div className="w-9 h-9 rounded-md bg-emerald-50 text-[#056a42] font-bold text-sm flex items-center justify-center shrink-0 border border-emerald-100 select-none">
+            {initials}
+        </div>
+    );
+}
+
 function StarRating({ percent = 0 }) {
     let filled = 3;
     if (percent >= 50) filled = 5;
@@ -119,20 +140,7 @@ export default function IPOGmpGrid({ ipos = [], watchlist = [], onToggleWatchlis
 
                             {/* Title Row with Logo */}
                             <div className="flex items-center gap-2.5 mb-3">
-                                {ipo.logo ? (
-                                    <img 
-                                        src={ipo.logo} 
-                                        alt={ipo.company} 
-                                        className="w-8 h-8 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-md bg-emerald-50 text-[#056a42] font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100">
-                                        {ipo.initials || ipo.company?.slice(0, 2).toUpperCase()}
-                                    </div>
-                                )}
+                                <CompanyLogo logo={ipo.logo} initials={ipo.initials || ipo.company?.slice(0, 2).toUpperCase() || '?'} company={ipo.company} />
                                 <Link 
                                     to={`/ipos/${ipo.id}`} 
                                     className="text-[14.5px] font-bold text-slate-900 hover:text-[#056a42] hover:underline leading-snug line-clamp-1 block flex-1"
