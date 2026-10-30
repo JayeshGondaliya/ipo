@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/ipo/:path*",
+      "destination": "https://ipobackend.onrender.com/api/ipo/:path*"
+    },
+    {
+      "source": "/api/contact/:path*",
+      "destination": "https://ipobackend.onrender.com/api/contact/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+

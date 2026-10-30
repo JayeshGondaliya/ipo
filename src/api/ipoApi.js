@@ -1,16 +1,12 @@
-export const RENDER_BACKEND_URL = 'https://ipobackend.onrender.com/api/ipo';
 export const RENDER_ROOT_URL = 'https://ipobackend.onrender.com';
 
 /**
- * Determine endpoint URL:
- * - On local development browser, uses '/api/ipo' via Vite proxy (with changeOrigin) to prevent CORS blocks.
- * - In production, connects directly to https://ipobackend.onrender.com/api/ipo
+ * Always use relative /api/ipo path.
+ * - Local dev  : Vite proxy rewrites /api/ipo → https://ipobackend.onrender.com/api/ipo (no CORS)
+ * - Production : Vercel rewrites /api/ipo → https://ipobackend.onrender.com/api/ipo (no CORS)
  */
 export function getEndpointUrl(path = '') {
-    const isLocalhost = typeof window !== 'undefined' &&
-        (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1');
-    const base = isLocalhost ? '/api/ipo' : RENDER_BACKEND_URL;
-    return `${base}${path}`;
+    return `/api/ipo${path}`;
 }
 
 /**
@@ -339,7 +335,8 @@ export async function getGmpBySlug(slug) {
  */
 
 export async function submitContact(formData) {
-    const url = "https://ipobackend.onrender.com/api/contact/sendContact";
+    // Relative path — Vite proxy handles it locally, Vercel rewrites handle it in prod
+    const url = "/api/contact/sendContact";
 
     const payload = {
         fullName: formData.fullName.trim(),
