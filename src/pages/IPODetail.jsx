@@ -30,7 +30,6 @@ import {
     CheckCircleOutlined
 } from '@ant-design/icons';
 import { Link, useParams } from 'react-router-dom';
-import { allIpos } from '../data/ipos.js';
 import { getIpoBySlug } from '../api/ipoApi.js';
 import NotFound from './NotFound.jsx';
 import { formatPercentage } from '../utils/gmp.js';
@@ -48,15 +47,19 @@ function formatDate(val) {
 
 export default function IPODetail({ watchlist = [], onToggleWatchlist }) {
     const { id } = useParams();
-    const initialIpo = allIpos.find((item) => item.id === id);
-    const [ipo, setIpo] = useState(initialIpo);
+    const [ipo, setIpo] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let active = true;
         if (id) {
+            setLoading(true);
             getIpoBySlug(id).then((res) => {
-                if (active && res.success && res.data) {
-                    setIpo(res.data);
+                if (active) {
+                    if (res.success && res.data) {
+                        setIpo(res.data);
+                    }
+                    setLoading(false);
                 }
             });
         }
@@ -66,6 +69,15 @@ export default function IPODetail({ watchlist = [], onToggleWatchlist }) {
     }, [id]);
 
     const [lotsCount, setLotsCount] = useState(1);
+
+    if (loading) {
+        return (
+            <div className="py-20 text-center">
+                <div className="inline-block w-8 h-8 border-4 border-[#056a42] border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="text-slate-500 text-sm font-medium">Loading IPO details from live market backend...</div>
+            </div>
+        );
+    }
 
     if (!ipo) return <NotFound />;
 

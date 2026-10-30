@@ -33,11 +33,13 @@ export default function Navbar({ watchlistCount = 0 }) {
                                     : 'text-slate-600 hover:text-primary-green hover:bg-slate-50 md:hover:bg-transparent'
                             }`
                         }
-                        to="/"
-                        end
-                        title="Live GMP"
+                        to="/live-gmp"
+                        title="Live IPO GMP"
                     >
-                        <span>Live GMP</span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Live GMP</span>
+                        </span>
                     </NavLink>
 
                     <NavLink
@@ -68,6 +70,21 @@ export default function Navbar({ watchlistCount = 0 }) {
                         title="About IPOGMP"
                     >
                         <span>About</span>
+                    </NavLink>
+
+                    <NavLink
+                        onClick={closeMenu}
+                        className={({ isActive }) =>
+                            `relative inline-flex items-center h-10 md:h-16 px-3 md:px-4 text-sm font-medium transition-colors duration-200 rounded-md md:rounded-none select-none ${
+                                isActive
+                                    ? 'text-primary-green font-semibold bg-emerald-50/60 md:bg-transparent md:after:absolute md:after:bottom-0 md:after:left-4 md:after:right-4 md:after:h-[2.5px] md:after:bg-primary-green md:after:rounded-t-sm'
+                                    : 'text-slate-600 hover:text-primary-green hover:bg-slate-50 md:hover:bg-transparent'
+                            }`
+                        }
+                        to="/contact"
+                        title="Contact Us"
+                    >
+                        <span>Contact</span>
                     </NavLink>
 
                     {/* Disabled Check Allotment Item - User cannot open/click */}

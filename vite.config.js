@@ -10,6 +10,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      '/api/contact': {
+        target: 'https://ipobackend.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/ipo/contact': {
+        target: 'https://ipobackend.onrender.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/ipo\/contact/, '/api/contact'),
+      },
     },
   },
 });

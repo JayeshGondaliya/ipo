@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
     Tabs, 
     Card, 
@@ -25,7 +25,7 @@ import {
     FileTextOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import ipos, { allIpos } from '../data/ipos.js';
+import { getIpos } from '../api/ipoApi.js';
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
 
 const { Title, Text, Paragraph } = Typography;
@@ -59,13 +59,26 @@ const registrars = [
 ];
 
 export default function Dashboard({ watchlist = [], onToggleWatchlist }) {
+    const [liveIpos, setLiveIpos] = useState([]);
     const [form] = Form.useForm();
     const [result, setResult] = useState(null);
 
-    const watchlistIpos = allIpos.filter((item) => watchlist.includes(item.id));
+    useEffect(() => {
+        let active = true;
+        getIpos().then((res) => {
+            if (active && res.success && res.data?.length > 0) {
+                setLiveIpos(res.data);
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    const watchlistIpos = liveIpos.filter((item) => watchlist.includes(item.id));
 
     const onFinish = (values) => {
-        const selected = allIpos.find((i) => i.id === values.ipo);
+        const selected = liveIpos.find((i) => i.id === values.ipo);
         setResult({
             success: true,
             company: selected?.company || 'Selected IPO',
@@ -128,7 +141,7 @@ export default function Dashboard({ watchlist = [], onToggleWatchlist }) {
                                                     filterOption={(input, option) =>
                                                         (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                                                     }
-                                                    options={ipos.map((i) => ({
+                                                    options={liveIpos.map((i) => ({
                                                         value: i.id,
                                                         label: `${i.company} (${i.board}) - ${i.status.toUpperCase()}`,
                                                     }))}

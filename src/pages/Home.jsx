@@ -14,7 +14,6 @@ import {
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
 import IPOGmpGrid from '../components/ipo/IPOGmpGrid.jsx';
 import IPOSeoContent from '../components/common/IPOSeoContent.jsx';
-import ipos, { allIpos } from '../data/ipos.js';
 import { getIpos } from '../api/ipoApi.js';
 
 function formatSidebarDates(openVal, closeVal) {
@@ -41,7 +40,8 @@ function formatSidebarDates(openVal, closeVal) {
 }
 
 export default function Home({ watchlist = [], onToggleWatchlist }) {
-    const [liveIpos, setLiveIpos] = useState(allIpos);
+    const [liveIpos, setLiveIpos] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [boardFilter, setBoardFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -49,9 +49,13 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
 
     useEffect(() => {
         let active = true;
+        setLoading(true);
         getIpos().then((res) => {
-            if (active && res.success && res.data?.length > 0) {
-                setLiveIpos(res.data);
+            if (active) {
+                if (res.success && res.data?.length > 0) {
+                    setLiveIpos(res.data);
+                }
+                setLoading(false);
             }
         });
         return () => {
@@ -395,6 +399,7 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                                 ipos={filteredIPOs}
                                 watchlist={watchlist}
                                 onToggleWatchlist={onToggleWatchlist}
+                                loading={loading}
                             />
                         </div>
                     ) : (
@@ -417,16 +422,20 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                             CURRENT MAINBOARD IPO
                         </div>
                         <ul className="divide-y divide-slate-100 p-2.5 space-y-1">
-                            {mainboardSidebarIpos.map((ipo) => (
-                                <li key={ipo.id} className="py-1">
-                                    <Link
-                                        to={`/ipos/${ipo.id}`}
-                                        className="text-[13px] leading-snug font-normal text-[#0b5c92] hover:text-[#06385a] hover:underline block"
-                                    >
-                                        {ipo.company} {formatSidebarDates(ipo.openDate, ipo.closeDate)}
-                                    </Link>
-                                </li>
-                            ))}
+                            {loading ? (
+                                <li className="py-4 text-center text-xs text-slate-400">Loading mainboard IPOs...</li>
+                            ) : (
+                                mainboardSidebarIpos.map((ipo) => (
+                                    <li key={ipo.id} className="py-1">
+                                        <Link
+                                            to={`/ipos/${ipo.id}`}
+                                            className="text-[13px] leading-snug font-normal text-[#0b5c92] hover:text-[#06385a] hover:underline block"
+                                        >
+                                            {ipo.company} {formatSidebarDates(ipo.openDate, ipo.closeDate)}
+                                        </Link>
+                                    </li>
+                                ))
+                            )}
                         </ul>
                     </div>
 
@@ -436,16 +445,20 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
                             CURRENT SME IPO
                         </div>
                         <ul className="divide-y divide-slate-100 p-2.5 space-y-1">
-                            {smeSidebarIpos.map((ipo) => (
-                                <li key={ipo.id} className="py-1">
-                                    <Link
-                                        to={`/ipos/${ipo.id}`}
-                                        className="text-[13px] leading-snug font-normal text-[#0b5c92] hover:text-[#06385a] hover:underline block"
-                                    >
-                                        {ipo.company} {formatSidebarDates(ipo.openDate, ipo.closeDate)}
-                                    </Link>
-                                </li>
-                            ))}
+                            {loading ? (
+                                <li className="py-4 text-center text-xs text-slate-400">Loading SME IPOs...</li>
+                            ) : (
+                                smeSidebarIpos.map((ipo) => (
+                                    <li key={ipo.id} className="py-1">
+                                        <Link
+                                            to={`/ipos/${ipo.id}`}
+                                            className="text-[13px] leading-snug font-normal text-[#0b5c92] hover:text-[#06385a] hover:underline block"
+                                        >
+                                            {ipo.company} {formatSidebarDates(ipo.openDate, ipo.closeDate)}
+                                        </Link>
+                                    </li>
+                                ))
+                            )}
                         </ul>
                     </div>
 

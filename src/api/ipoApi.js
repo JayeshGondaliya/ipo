@@ -1,8 +1,5 @@
-import localIposData from '../data/iposData.json';
-
 export const RENDER_BACKEND_URL = 'https://ipobackend.onrender.com/api/ipo';
-
-const fallbackList = Array.isArray(localIposData) ? localIposData : [];
+export const RENDER_ROOT_URL = 'https://ipobackend.onrender.com';
 
 /**
  * Determine endpoint URL:
@@ -10,10 +7,21 @@ const fallbackList = Array.isArray(localIposData) ? localIposData : [];
  * - In production, connects directly to https://ipobackend.onrender.com/api/ipo
  */
 export function getEndpointUrl(path = '') {
-    const isLocalhost = typeof window !== 'undefined' && 
+    const isLocalhost = typeof window !== 'undefined' &&
         (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1');
     const base = isLocalhost ? '/api/ipo' : RENDER_BACKEND_URL;
     return `${base}${path}`;
+}
+
+/**
+ * Wake up Render backend if sleeping (cold start).
+ */
+export async function pingBackendRoot() {
+    try {
+        await fetch(RENDER_ROOT_URL, { method: 'GET', mode: 'no-cors' });
+    } catch {
+        // Ignore ping errors
+    }
 }
 
 /**
@@ -23,18 +31,18 @@ export function normalizeIpo(raw, index = 0) {
     if (!raw) return null;
 
     const board = raw.type === 'SME' ? 'SME' : 'Mainboard';
-    const effectivePrice = Number(raw.issue_price || raw.issue?.issue_price) || 
-        raw.price_max || raw.issue?.price_max || 
+    const effectivePrice = Number(raw.issue_price || raw.issue?.issue_price) ||
+        raw.price_max || raw.issue?.price_max ||
         raw.price_min || raw.issue?.price_min || 100;
 
     const gmpPrice = raw.gmp?.price != null ? Number(raw.gmp.price) : 0;
-    const gmpPercentage = raw.gmp?.percentage != null 
-        ? Number(raw.gmp.percentage) 
+    const gmpPercentage = raw.gmp?.percentage != null
+        ? Number(raw.gmp.percentage)
         : (effectivePrice > 0 ? Number(((gmpPrice / effectivePrice) * 100).toFixed(2)) : 0);
 
     const lotSize = raw.lot_size || raw.issue?.lot_size || (board === 'SME' ? 1200 : 50);
-    const estListingPrice = raw.gmp?.estimated_listing_price != null 
-        ? Number(raw.gmp.estimated_listing_price) 
+    const estListingPrice = raw.gmp?.estimated_listing_price != null
+        ? Number(raw.gmp.estimated_listing_price)
         : (effectivePrice + gmpPrice);
 
     const estProfitPerLot = Math.round(gmpPrice * lotSize);
@@ -152,7 +160,10 @@ export function normalizeIpo(raw, index = 0) {
         allotmentDate,
         listingDate,
         // Offer details
-        subscription: raw.subscription_total || 0,
+        issueSize,
+        issueSizeCr: Number(issueSize) || 0,
+        subscription: raw.subscription_total != null ? Number(raw.subscription_total) : null,
+        rawSubscription: raw.subscription_total,
         qibSub: Number(((raw.subscription_total || 0) * 1.25).toFixed(2)),
         niiSub: Number(((raw.subscription_total || 0) * 1.15).toFixed(2)),
         retailSub: Number(((raw.subscription_total || 0) * 0.85).toFixed(2)),
@@ -176,163 +187,175 @@ export function normalizeIpo(raw, index = 0) {
 }
 
 /**
- * Fetch all IPOs from https://ipobackend.onrender.com/api/ipo/ipos
+ * Fetch with automatic retry and wake-up ping for Render cold-starts
+ */
+async function fetchWithRetry(url, options = {}, retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const res = await fetch(url, options);
+            if (res.ok) return res;
+        } catch (err) {
+            if (attempt === 0) {
+                // Ping render root to wake up the service
+                pingBackendRoot();
+            }
+            if (attempt === retries) throw err;
+            // Wait 1.5s before retry
+            await new Promise((r) => setTimeout(r, 1500));
+        }
+    }
+    throw new Error(`Failed to fetch ${url}`);
+}
+
+/**
+ * Fetch all IPOs dynamically from https://ipobackend.onrender.com/api/ipo/ipos
  */
 export async function getIpos(params = {}) {
     const query = new URLSearchParams(params).toString();
     const url = getEndpointUrl(`/ipos${query ? `?${query}` : ''}`);
     try {
-        const res = await fetch(url);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success && Array.isArray(json.data)) {
-                console.log(
-                    `%c📡 [Render Backend] %cGET ${url} %c(${json.count} IPOs loaded)`,
-                    'color: #056a42; font-weight: bold;',
-                    'color: #0284c7;',
-                    'color: #16a34a; font-weight: bold;',
-                    json.data
-                );
-                return {
-                    success: true,
-                    count: json.data.length,
-                    data: json.data.map((item, i) => normalizeIpo(item, i)),
-                };
-            }
+        const res = await fetchWithRetry(url);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+            console.log(
+                `%c📡 [Render Backend] %cGET ${url} %c(${json.data.length} IPOs loaded)`,
+                'color: #056a42; font-weight: bold;',
+                'color: #0284c7;',
+                'color: #16a34a; font-weight: bold;',
+                json.data
+            );
+            return {
+                success: true,
+                count: json.data.length,
+                data: json.data.map((item, i) => normalizeIpo(item, i)),
+            };
         }
     } catch (err) {
-        console.warn(`[Render Backend] Fetch failed from ${url}, using cached fallback:`, err.message);
+        console.error(`[Render Backend] Error fetching IPOs from ${url}:`, err.message);
     }
 
-    console.log(
-        `%c💾 [Local Cache] %cLoaded ${fallbackList.length} IPOs`,
-        'color: #475569; font-weight: bold;',
-        'color: #0f172a;',
-        fallbackList
-    );
     return {
-        success: true,
-        count: fallbackList.length,
-        data: fallbackList.map((item, i) => normalizeIpo(item, i)),
+        success: false,
+        count: 0,
+        data: [],
     };
 }
 
 /**
- * Fetch GMP offerings from https://ipobackend.onrender.com/api/ipo/gmp
+ * Fetch GMP offerings dynamically from https://ipobackend.onrender.com/api/ipo/gmp
  */
 export async function getGmp() {
     const url = getEndpointUrl('/gmp');
     try {
-        const res = await fetch(url);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success && Array.isArray(json.data)) {
-                console.log(
-                    `%c📡 [Render Backend] %cGET ${url} %c(${json.count} GMP items loaded)`,
-                    'color: #056a42; font-weight: bold;',
-                    'color: #0284c7;',
-                    'color: #16a34a; font-weight: bold;',
-                    json.data
-                );
-                return {
-                    success: true,
-                    count: json.data.length,
-                    data: json.data.map((item, i) => normalizeIpo(item, i)),
-                };
-            }
+        const res = await fetchWithRetry(url);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+            console.log(
+                `%c📡 [Render Backend] %cGET ${url} %c(${json.data.length} GMP items loaded)`,
+                'color: #056a42; font-weight: bold;',
+                'color: #0284c7;',
+                'color: #16a34a; font-weight: bold;',
+                json.data
+            );
+            return {
+                success: true,
+                count: json.data.length,
+                data: json.data.map((item, i) => normalizeIpo(item, i)),
+            };
         }
     } catch (err) {
-        console.warn(`[Render Backend] Fetch failed from ${url}:`, err.message);
+        console.error(`[Render Backend] Error fetching GMP from ${url}:`, err.message);
     }
 
-    const filtered = fallbackList
-        .filter((item) => item.gmp && (item.gmp.price !== null || item.gmp.percentage !== null))
-        .map((item, i) => normalizeIpo(item, i));
-
     return {
-        success: true,
-        count: filtered.length,
-        data: filtered,
+        success: false,
+        count: 0,
+        data: [],
     };
 }
 
 /**
- * Fetch single IPO by slug from https://ipobackend.onrender.com/api/ipo/ipos/:slug
+ * Fetch single IPO dynamically by slug from https://ipobackend.onrender.com/api/ipo/ipos/:slug
  */
 export async function getIpoBySlug(slug) {
     const url = getEndpointUrl(`/ipos/${slug}`);
     try {
-        const res = await fetch(url);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success && json.data) {
-                console.log(
-                    `%c📡 [Render Backend] %cGET ${url}:`,
-                    'color: #056a42; font-weight: bold;',
-                    'color: #0284c7;',
-                    json.data
-                );
-                return {
-                    success: true,
-                    data: normalizeIpo(json.data),
-                };
-            }
+        const res = await fetchWithRetry(url);
+        const json = await res.json();
+        if (json.success && json.data) {
+            console.log(
+                `%c📡 [Render Backend] %cGET ${url}:`,
+                'color: #056a42; font-weight: bold;',
+                'color: #0284c7;',
+                json.data
+            );
+            return {
+                success: true,
+                data: normalizeIpo(json.data),
+            };
         }
     } catch (err) {
-        console.warn(`[Render Backend] Fetch failed from ${url}:`, err.message);
-    }
-
-    const localItem = fallbackList.find((i) => i.slug === slug);
-    if (localItem) {
-        return {
-            success: true,
-            data: normalizeIpo(localItem),
-        };
+        console.error(`[Render Backend] Error fetching single IPO '${slug}' from ${url}:`, err.message);
     }
 
     return {
         success: false,
+        data: null,
         message: `IPO with slug '${slug}' not found`,
     };
 }
 
 /**
- * Fetch GMP for a single IPO by slug from https://ipobackend.onrender.com/api/ipo/ipos/:slug/gmp
+ * Fetch GMP for a single IPO dynamically by slug from https://ipobackend.onrender.com/api/ipo/ipos/:slug/gmp
  */
 export async function getGmpBySlug(slug) {
     const url = getEndpointUrl(`/ipos/${slug}/gmp`);
     try {
-        const res = await fetch(url);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success) {
-                console.log(
-                    `%c📡 [Render Backend] %cGET ${url}:`,
-                    'color: #056a42; font-weight: bold;',
-                    'color: #0284c7;',
-                    json
-                );
-                return json;
-            }
+        const res = await fetchWithRetry(url);
+        const json = await res.json();
+        if (json.success) {
+            console.log(
+                `%c📡 [Render Backend] %cGET ${url}:`,
+                'color: #056a42; font-weight: bold;',
+                'color: #0284c7;',
+                json
+            );
+            return json;
         }
     } catch (err) {
-        console.warn(`[Render Backend] Fetch failed from ${url}:`, err.message);
-    }
-
-    const localItem = fallbackList.find((i) => i.slug === slug);
-    if (localItem) {
-        return {
-            success: true,
-            slug: localItem.slug,
-            name: localItem.name,
-            issue_price: localItem.issue_price,
-            lot_size: localItem.lot_size,
-            data: localItem.gmp || null,
-        };
+        console.error(`[Render Backend] Error fetching GMP by slug '${slug}' from ${url}:`, err.message);
     }
 
     return {
         success: false,
-        message: `IPO with slug '${slug}' not found`,
+        data: null,
+        message: `GMP for slug '${slug}' not found`,
     };
 }
+
+/**
+ * Submit Contact message to backend
+ * POST /api/contact or /ipo/contact
+ */
+export async function submitContact(formData) {
+    const url = 'https://ipobackend.onrender.com/api/contact';
+
+    const payload = {
+        fullName: formData.fullName?.trim() || '',
+        email: formData.email?.trim() || '',
+        number: formData.number?.trim() || '',
+        msg: formData.msg?.trim() || '',
+    };
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    return json;
+}
+

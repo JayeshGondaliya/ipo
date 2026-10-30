@@ -71,6 +71,7 @@ export default function Footer() {
                             <li><Link to="/">Live GMP Tracker</Link></li>
                             <li><Link to="/ipos">IPO Calendar</Link></li>
                             <li><Link to="/about">About Us</Link></li>
+                            <li><Link to="/contact">Contact Us</Link></li>
                             <li><Link to="/disclaimer">Disclaimer</Link></li>
                             <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                             <li><Link to="/dashboard">Check Allotment</Link></li>
@@ -141,8 +142,10 @@ export default function Footer() {
                         © {currentYear} ipogmp.in &nbsp;·&nbsp; IPO GMP data provided by <a href="https://www.ipoguru.in/" target="_blank" rel="noopener noreferrer">ipoguru.in</a> &nbsp;·&nbsp; <Link to="/disclaimer">Disclaimer</Link> &nbsp;·&nbsp; <Link to="/privacy-policy">Privacy Policy</Link> &nbsp;·&nbsp; <Link to="/about">About Us</Link>
                     </p>
                     <p className="footer-disclaimer">
-                        <ShieldCheck size={12} aria-hidden="true" />
-                        GMP is an unregulated grey market indicator. Not investment advice. Consult a SEBI-registered advisor before investing.
+                        <span className="inline-flex items-center gap-1">
+                            <ShieldCheck size={14} className="text-emerald-500 shrink-0" aria-hidden="true" />
+                            <span>GMP is an unregulated grey market indicator. Not investment advice. Consult a SEBI-registered advisor before investing.</span>
+                        </span>
                     </p>
                 </div>
             </div>

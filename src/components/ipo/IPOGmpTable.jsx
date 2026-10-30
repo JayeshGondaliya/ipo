@@ -70,7 +70,7 @@ function formatShortDateRange(openVal, closeVal) {
     }
 }
 
-export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchlist }) {
+export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchlist, loading = false }) {
     const [calcIpo, setCalcIpo] = useState(null);
     const [calcLots, setCalcLots] = useState(1);
 
@@ -292,10 +292,11 @@ export default function IPOGmpTable({ ipos = [], watchlist = [], onToggleWatchli
     return (
         <div className="ipogmp-table-wrapper">
             <Table
+                loading={loading}
                 dataSource={ipos}
                 columns={columns}
                 rowKey="id"
-                scroll={{ x: 640 }}
+                scroll={{ x: 'max-content' }}
                 pagination={{ 
                     pageSize: 20, 
                     showSizeChanger: true, 
