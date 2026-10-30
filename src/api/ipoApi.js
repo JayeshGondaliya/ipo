@@ -337,25 +337,34 @@ export async function getGmpBySlug(slug) {
  * Submit Contact message to backend
  * POST /api/contact or /ipo/contact
  */
+
 export async function submitContact(formData) {
-    const url = 'https://ipobackend.onrender.com/api/contact';
+    const url = "https://ipobackend.onrender.com/api/contact/sendContact";
 
     const payload = {
-        fullName: formData.fullName?.trim() || '',
-        email: formData.email?.trim() || '',
-        number: formData.number?.trim() || '',
-        msg: formData.msg?.trim() || '',
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        number: formData.number.trim(),
+
+        msg: formData.msg.trim()
     };
 
-    const res = await fetch(url, {
-        method: 'POST',
+    const response = await fetch(url, {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
     });
 
-    const json = await res.json();
-    return json;
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.message || "Failed to submit contact form."
+        );
+    }
+
+    return result;
 }
 
