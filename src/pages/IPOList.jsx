@@ -10,6 +10,7 @@ import { LayoutGrid, List, Sparkles } from 'lucide-react';
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
 import IPOGmpGrid from '../components/ipo/IPOGmpGrid.jsx';
 import IPOSeoContent from '../components/common/IPOSeoContent.jsx';
+import SEO from '../components/common/SEO.jsx';
 import { getIpos } from '../api/ipoApi.js';
 
 export default function IPOList({ watchlist = [], onToggleWatchlist }) {
@@ -105,6 +106,12 @@ export default function IPOList({ watchlist = [], onToggleWatchlist }) {
 
     return (
         <div className="py-3 max-w-7xl mx-auto space-y-4">
+            <SEO
+                title="Upcoming IPO GMP &amp; All IPOs List Today - Mainboard &amp; SME IPOs"
+                description="Upcoming IPO GMP and complete all IPOs list today in India. Compare issue prices, lot sizes, live GMP of IPO offerings, and subscription demand."
+                canonical="/ipos"
+                keywords="upcoming ipo gmp, all ipos list, ipo gmp today, gmp of ipo, gmp ipo, sme ipo gmp, mainboard ipo list"
+            />
             {/* Breadcrumb Row */}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="text-xs text-slate-500 font-medium">
@@ -125,10 +132,10 @@ export default function IPOList({ watchlist = [], onToggleWatchlist }) {
             {/* Page Title & Subtitle */}
             <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight m-0">
-                    All IPOs List
+                    Upcoming IPO GMP &amp; All IPOs Directory Today
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Complete master directory of Mainboard and SME public offerings with live Grey Market Premium (GMP), issue prices, lot sizes, and subscription status.
+                    Master list of <strong>upcoming IPO GMP</strong> and current Mainboard &amp; SME public offerings. Track the latest <strong>GMP of IPO</strong> shares, issue prices, lot sizes, and subscription status.
                 </p>
             </div>
 

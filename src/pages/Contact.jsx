@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { submitContact } from '../api/ipoApi.js';
+import SEO from '../components/common/SEO.jsx';
 
 const { TextArea } = Input;
 
@@ -134,6 +135,12 @@ export default function Contact() {
 
     return (
         <div className="py-4 max-w-5xl mx-auto space-y-6">
+            <SEO
+                title="Contact Us - IPO Questions & Market Feedback"
+                description="Get in touch with the IPOGMP team. Reach out for feedback, IPO data inquiries, advertising, or partnership opportunities."
+                canonical="/contact"
+                keywords="contact IPOGMP, IPO feedback, advertise with IPOGMP, IPO GMP inquiries"
+            />
 
             {/* Breadcrumb */}
             <div className="text-xs text-slate-500 font-medium">
@@ -185,29 +192,11 @@ export default function Contact() {
                                     </div>
 
                                     <div className="text-slate-500">
-                                        Mumbai / Ahmedabad, India
+                                        Surat, Gujarat, India
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Working Hours */}
-                            <div className="flex items-start gap-3">
-                                <ClockCircleOutlined className="text-[#056a42] text-sm mt-0.5" />
-
-                                <div>
-                                    <div className="font-semibold text-slate-800">
-                                        Market Coverage Hours
-                                    </div>
-
-                                    <div className="text-slate-500">
-                                        Monday – Friday: 9:00 AM – 7:00 PM IST
-                                    </div>
-
-                                    <div className="text-slate-500">
-                                        Saturday: 10:00 AM – 2:00 PM IST
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* Email */}
                             <div className="flex items-start gap-3">

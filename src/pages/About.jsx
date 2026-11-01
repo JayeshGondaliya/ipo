@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO.jsx';
 import { 
     Building2, 
     ShieldCheck, 
@@ -54,6 +55,12 @@ export default function About() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-14">
+            <SEO
+                title="About Us - Independent IPO GMP Tracker & Research Desk"
+                description="Learn more about IPOGMP - an independent Indian IPO research platform providing live Grey Market Premium (GMP) data, subscription metrics, and listing analytics."
+                canonical="/about"
+                keywords="about IPOGMP, IPO research desk, live IPO tracker India, IPO grey market dealers, IPO analysis"
+            />
             {/* Top Navigation & Breadcrumb */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                 <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500">

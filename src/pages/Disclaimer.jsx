@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO.jsx';
 import { 
     AlertTriangle, 
     ArrowLeft, 
@@ -17,6 +18,11 @@ export default function Disclaimer() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-14">
+            <SEO
+                title="Disclaimer & Risk Warning - Not Financial or SEBI Investment Advice"
+                description="Read the IPOGMP disclaimer. IPO Grey Market Premium (GMP) is an unregulated market estimate and not financial advice. Consult a SEBI-registered advisor."
+                canonical="/disclaimer"
+            />
             {/* Top Navigation & Breadcrumb */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                 <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500">

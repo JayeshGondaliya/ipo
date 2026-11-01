@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO.jsx';
 import { 
     ShieldCheck, 
     Lock, 
@@ -19,6 +20,11 @@ export default function PrivacyPolicy() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-14">
+            <SEO
+                title="Privacy Policy - User Data & Cookie Guidelines"
+                description="Read the IPOGMP privacy policy regarding data collection, cookies, Google AdSense, and analytics. We respect investor privacy."
+                canonical="/privacy-policy"
+            />
             {/* Top Navigation & Breadcrumb */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                 <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500">

@@ -14,6 +14,7 @@ import {
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
 import IPOGmpGrid from '../components/ipo/IPOGmpGrid.jsx';
 import IPOSeoContent from '../components/common/IPOSeoContent.jsx';
+import SEO from '../components/common/SEO.jsx';
 import { getIpos } from '../api/ipoApi.js';
 
 function formatSidebarDates(openVal, closeVal) {
@@ -182,15 +183,48 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
         year: 'numeric',
     }).format(new Date());
 
+    const homeSchema = {
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'WebSite',
+                '@id': 'https://ipogmp.in/#website',
+                'url': 'https://ipogmp.in/',
+                'name': 'IPOGMP',
+                'description': 'Track live IPO Grey Market Premium (GMP), estimated listing price, and subscription status in India.',
+                'potentialAction': {
+                    '@type': 'SearchAction',
+                    'target': 'https://ipogmp.in/ipos?search={search_term_string}',
+                    'query-input': 'required name=search_term_string'
+                }
+            },
+            {
+                '@type': 'Organization',
+                '@id': 'https://ipogmp.in/#organization',
+                'name': 'IPOGMP',
+                'url': 'https://ipogmp.in/',
+                'logo': 'https://ipogmp.in/logo.png',
+                'sameAs': ['https://www.ipoguru.in/']
+            }
+        ]
+    };
+
     return (
         <div className="py-2">
+            <SEO
+                title="IPO GMP Today: Live IPO GMP, GMP of IPO & Upcoming IPO GMP Rates"
+                description="Track live IPO GMP today, real-time GMP of IPO, upcoming IPO GMP rates, estimated listing gains, Kostak rates, and subscription status for Mainboard & SME IPOs in India."
+                canonical="/"
+                keywords="ipo gmp, gmp of ipo, gmp ipo, ipo gmp today, live ipo gmp, upcoming ipo gmp, ipo listing price, sme ipo gmp, mainboard ipo"
+                schema={homeSchema}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Main Content Column */}
                 <div className="lg:col-span-8 xl:col-span-9 min-w-0">
                     {/* Natural Editorial Header */}
                     <div className="mb-5">
                         <h1 className="text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight leading-snug mb-2.5">
-                            IPO GMP Today: Live IPO Grey Market Premium
+                            IPO GMP Today: Live IPO GMP, GMP of IPO &amp; Upcoming IPOs
                         </h1>
 
                         {/* Author & Byline Meta Row */}
@@ -230,7 +264,7 @@ export default function Home({ watchlist = [], onToggleWatchlist }) {
 
                         {/* Editorial Context Description */}
                         <p className="text-[14px] sm:text-[15px] leading-relaxed text-slate-700 font-normal max-w-4xl">
-                            IPO GMP, also known as the grey market premium, is trending for upcoming and current Mainboard and SME IPOs. The GMP gives live estimates of the upcoming IPOs listing and its an unofficial indicator for listing expectations.
+                            Track live <strong>IPO GMP today</strong> and discover the latest <strong>GMP of IPO</strong> offerings before listing. Our real-time tracker monitors <strong>live IPO GMP</strong> rates, <strong>upcoming IPO GMP</strong> expectations, Kostak rates, and Subject to Sauda for Mainboard and SME public offerings in India.
                         </p>
                     </div>
 

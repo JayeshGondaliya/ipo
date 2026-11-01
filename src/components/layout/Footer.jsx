@@ -48,20 +48,17 @@ export default function Footer() {
                         <p className="footer-tagline">
                             India's live IPO Grey Market Premium (GMP) tracker. Real-time data, subscription status, allotment checks, and listing analytics — all in one place.
                         </p>
-                        <div className="text-xs text-slate-600 flex items-center flex-wrap gap-1.5 pt-0.5">
-                            <span className="text-slate-500">IPO GMP data provided by:</span>
+                        <div className="text-xs text-slate-500 flex items-center flex-wrap gap-1.5 pt-0.5">
+                            <span className="text-slate-400">IPO GMP data provided by:</span>
                             <a
                                 href="https://www.ipoguru.in/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="font-semibold text-primary-green hover:underline inline-flex items-center gap-1"
+                                className="font-semibold text-[#056a42] hover:underline inline-flex items-center gap-1"
                             >
                                 ipoguru.in <ExternalLink size={11} />
                             </a>
                         </div>
-                        <p className="footer-sub-note">
-                            Compiled from over-the-counter grey market dealers for informational reference.
-                        </p>
                     </div>
 
                     {/* Quick Links */}
@@ -74,7 +71,7 @@ export default function Footer() {
                             <li><Link to="/contact">Contact Us</Link></li>
                             <li><Link to="/disclaimer">Disclaimer</Link></li>
                             <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                            <li><Link to="/dashboard">Check Allotment</Link></li>
+                            
                         </ul>
                     </div>
 
@@ -105,33 +102,7 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Stay Updated */}
-                    <div className="footer-col">
-                        <h4 className="footer-col-heading">Stay Updated</h4>
-                        <p className="footer-update-text">
-                            Get live GMP alerts and IPO updates directly on WhatsApp or Telegram.
-                        </p>
-                        <div className="footer-social-links">
-                            <a
-                                href="https://chat.whatsapp.com"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="footer-social-btn footer-social-btn--wa"
-                                aria-label="Join on WhatsApp"
-                            >
-                                <WhatsAppIcon size={16} /> WhatsApp
-                            </a>
-                            <a
-                                href="https://t.me"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="footer-social-btn footer-social-btn--tg"
-                                aria-label="Join on Telegram"
-                            >
-                                <TelegramIcon size={16} /> Telegram
-                            </a>
-                        </div>
-                    </div>
+                
                 </div>
             </div>
 
@@ -139,8 +110,19 @@ export default function Footer() {
             <div className="footer-bottom">
                 <div className="footer-bottom-inner">
                     <p className="footer-copyright">
-                        © {currentYear} ipogmp.in &nbsp;·&nbsp; IPO GMP data provided by <a href="https://www.ipoguru.in/" target="_blank" rel="noopener noreferrer">ipoguru.in</a> &nbsp;·&nbsp; <Link to="/disclaimer">Disclaimer</Link> &nbsp;·&nbsp; <Link to="/privacy-policy">Privacy Policy</Link> &nbsp;·&nbsp; <Link to="/about">About Us</Link>
+                        © {currentYear} ipogmp.in &nbsp;·&nbsp;
+                        Data by{' '}
+                        <a href="https://www.ipoguru.in/" target="_blank" rel="noopener noreferrer">ipoguru.in</a>
                     </p>
+                    <div className="footer-bottom-links">
+                        <Link to="/disclaimer">Disclaimer</Link>
+                        <span className="footer-dot" aria-hidden="true">·</span>
+                        <Link to="/privacy-policy">Privacy Policy</Link>
+                        <span className="footer-dot" aria-hidden="true">·</span>
+                        <Link to="/about">About</Link>
+                        <span className="footer-dot" aria-hidden="true">·</span>
+                        <Link to="/contact">Contact</Link>
+                    </div>
                     <p className="footer-disclaimer">
                         <span className="inline-flex items-center gap-1">
                             <ShieldCheck size={14} className="text-emerald-500 shrink-0" aria-hidden="true" />

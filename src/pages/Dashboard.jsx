@@ -27,6 +27,7 @@ import {
 import { Link } from 'react-router-dom';
 import { getIpos } from '../api/ipoApi.js';
 import IPOGmpTable from '../components/ipo/IPOGmpTable.jsx';
+import SEO from '../components/common/SEO.jsx';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -92,6 +93,12 @@ export default function Dashboard({ watchlist = [], onToggleWatchlist }) {
 
     return (
         <div className="page-container dashboard-page">
+            <SEO
+                title="IPO Allotment Status Check Online - Direct Registrar Links"
+                description="Check your IPO allotment status online across Link Intime, KFintech, Bigshare Services, and Maashitla. Verify PAN or application number with live GMP."
+                canonical="/dashboard"
+                keywords="IPO allotment status check, Link Intime IPO allotment, KFintech IPO allotment, Bigshare allotment status, check IPO allotment PAN"
+            />
             <div className="page-heading-row">
                 <div>
                     <span className="eyebrow"><SafetyCertificateOutlined /> INVESTOR TOOLS</span>

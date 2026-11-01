@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/layout/Layout.jsx';
@@ -13,6 +13,15 @@ import LiveIpoGmpPage from './pages/LiveIpoGmpPage.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import Disclaimer from './pages/Disclaimer.jsx';
 import NotFound from './pages/NotFound.jsx';
+
+/** Scrolls to top instantly on every route change */
+function ScrollToTop() {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, [pathname]);
+    return null;
+}
 
 export default function App() {
     const [watchlist, setWatchlist] = useState(() => {
@@ -77,6 +86,7 @@ export default function App() {
             }}
         >
             <BrowserRouter>
+                <ScrollToTop />
                 <Layout watchlistCount={watchlist.length}>
                     <Routes>
                         <Route path="/" element={<Home watchlist={watchlist} onToggleWatchlist={toggleWatchlist} />} />

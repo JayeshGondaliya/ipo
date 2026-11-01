@@ -32,6 +32,7 @@ import {
 import { Link, useParams } from 'react-router-dom';
 import { getIpoBySlug } from '../api/ipoApi.js';
 import NotFound from './NotFound.jsx';
+import SEO from '../components/common/SEO.jsx';
 import { formatPercentage } from '../utils/gmp.js';
 
 const { Title, Text, Paragraph } = Typography;
@@ -134,8 +135,62 @@ export default function IPODetail({ watchlist = [], onToggleWatchlist }) {
         listed: { color: 'purple', text: 'Listed on Exchanges' },
     };
 
+    const gmpText = gmp > 0 ? `+₹${gmp} (${formatPercentage(ipo.gmpPercent)})` : gmp < 0 ? `-₹${Math.abs(gmp)}` : '₹0';
+    const seoTitle = `${ipo.company} IPO GMP Today | GMP of ${ipo.company} IPO, Price & Listing`;
+    const seoDesc = `Live ${ipo.company} IPO GMP today is ${gmpText} with estimated listing at ₹${estListingPrice}. Check real-time GMP of ${ipo.company} IPO, issue price band ₹${price}, lot size ${lotSize} shares, subscription status, and allotment dates.`;
+
+    const detailSchema = {
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'BreadcrumbList',
+                'itemListElement': [
+                    {
+                        '@type': 'ListItem',
+                        'position': 1,
+                        'name': 'Home',
+                        'item': 'https://ipogmp.in/'
+                    },
+                    {
+                        '@type': 'ListItem',
+                        'position': 2,
+                        'name': 'All IPOs',
+                        'item': 'https://ipogmp.in/ipos'
+                    },
+                    {
+                        '@type': 'ListItem',
+                        'position': 3,
+                        'name': `${ipo.company} IPO GMP`,
+                        'item': `https://ipogmp.in/ipos/${id}`
+                    }
+                ]
+            },
+            {
+                '@type': 'FinancialProduct',
+                'name': `${ipo.company} IPO GMP Today`,
+                'description': seoDesc,
+                'category': ipo.board === 'SME' ? 'SME IPO' : 'Mainboard IPO',
+                'offers': {
+                    '@type': 'Offer',
+                    'price': String(price),
+                    'priceCurrency': 'INR',
+                    'availability': ipo.status === 'open' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+                }
+            }
+        ]
+    };
+
     return (
         <div className="ipo-detail-page">
+            <SEO
+                title={seoTitle}
+                description={seoDesc}
+                canonical={`/ipos/${id}`}
+                ogType="article"
+                ogImage={ipo.logo || 'https://ipogmp.in/logo.png'}
+                keywords={`${ipo.company.toLowerCase()} ipo gmp, ${ipo.company.toLowerCase()} ipo gmp today, gmp of ${ipo.company.toLowerCase()} ipo, ${ipo.company.toLowerCase()} ipo price, upcoming ipo gmp, live ipo gmp, ipo gmp today, gmp of ipo`}
+                schema={detailSchema}
+            />
             {/* Breadcrumb Navigation */}
             <div className="detail-top-bar">
                 <Link to="/" className="back-link">

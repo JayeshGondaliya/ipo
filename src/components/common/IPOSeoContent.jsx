@@ -5,14 +5,14 @@ export default function IPOSeoContent() {
             {/* Section 1: Overview */}
             <div>
                 <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight pb-2 border-b border-slate-200 mb-4">
-                    What is IPO Grey Market Premium (GMP)?
+                    What is the GMP of IPO (Grey Market Premium)?
                 </h2>
                 <div className="space-y-3 text-[14.5px] leading-relaxed text-slate-700">
                     <p>
-                        The <strong>IPO Grey Market Premium (GMP)</strong> is the unofficial price at which shares of an upcoming Initial Public Offering (IPO) are traded among market dealers and investors before they are officially listed on the National Stock Exchange (NSE) or Bombay Stock Exchange (BSE).
+                        The <strong>GMP of IPO</strong> (Grey Market Premium) is the unofficial premium at which shares of an initial public offering trade among market dealers and retail investors prior to official listing on the NSE or BSE. Tracking <strong>IPO GMP today</strong> helps investors gauge whether an issue will debut at a premium or discount.
                     </p>
                     <p>
-                        The grey market operates as an over-the-counter (OTC) cash market. When an IPO receives strong demand from institutional, high-net-worth (HNI), and retail investors, its grey market premium tends to rise. Conversely, if a public issue is overpriced or overall market sentiment is weak, the GMP can decline or even trade at a discount.
+                        In the Indian stock market, <strong>live IPO GMP</strong> acts as a real-time barometer of market demand. When an issue enjoys strong subscription interest from institutional (QIB) and high-net-worth investors (HNI), the <strong>gmp ipo</strong> rates surge. Conversely, if valuation appears stretched or market sentiment softens, <strong>upcoming IPO GMP</strong> estimates drop accordingly.
                     </p>
                 </div>
             </div>
@@ -127,10 +127,28 @@ export default function IPOSeoContent() {
 
                     <div>
                         <h3 className="text-[15px] font-bold text-slate-900 mb-1">
-                            How frequently is the GMP updated on IPOGMP?
+                            How frequently is live IPO GMP updated on IPOGMP?
                         </h3>
                         <p className="text-slate-700">
-                            GMP numbers on IPOGMP are tracked throughout daily market trading hours from active market dealer networks and updated in real time as rates fluctuate.
+                            <strong>Live IPO GMP today</strong> numbers are tracked throughout active trading hours from verified grey market dealer circles and updated in real-time as dealer quotes fluctuate.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 className="text-[15px] font-bold text-slate-900 mb-1">
+                            What is the difference between GMP of IPO and Kostak rate?
+                        </h3>
+                        <p className="text-slate-700">
+                            The <strong>GMP of IPO</strong> represents the per-share profit expectations after allotment, while the <strong>Kostak rate</strong> is the fixed profit earned by selling your entire IPO application before allotment, irrespective of whether shares are allotted to you.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 className="text-[15px] font-bold text-slate-900 mb-1">
+                            Where can I see upcoming IPO GMP predictions and dates?
+                        </h3>
+                        <p className="text-slate-700">
+                            You can monitor all <strong>upcoming IPO GMP</strong> rates, expected price bands, issue dates, and lot sizes directly in our All IPOs directory and Live GMP tracker.
                         </p>
                     </div>
                 </div>

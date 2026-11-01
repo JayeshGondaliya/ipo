@@ -1,3 +1,8 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+
+# Host & Sitemap
+Host: https://ipogmp.in
+Sitemap: https://ipogmp.in/sitemap.xml
